@@ -1,0 +1,6 @@
+{
+    "repo": "https://github.com/qmk/qmk_firmware",
+    "branch": "develop",
+    "keyboard": "handwired/onekey/rp2040",
+    "keymap": "default"
+}
