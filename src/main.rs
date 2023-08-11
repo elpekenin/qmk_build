@@ -1,73 +1,75 @@
+use std::process::exit;
+
 use clap::Parser;
 mod cli;
+
+mod git;
 
 mod json_config;
 
 mod logging;
 use logging::*;
 
+mod operations;
+
 mod sh;
 
-use std::{process::exit, collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
+
+/// Shared app state
+struct State<'a> {
+    // Location where CLI was invoked
+    cwd: &'a String,
+    // Location of the repo
+    path: &'a String,
+}
 
 /// Entrypoint for the app
 fn main() {
     logging::init();
 
-    let args = cli::Args::parse(); 
+    let args = cli::Args::parse();
     info!("Welcome to <blue>QMK build (alpha)</>");
-    
+
     // Read config file
-    let pwd = String::from_utf8(
-            sh::run_strict("pwd").stdout
-        )
+    let cwd = String::from_utf8(sh::run_strict("pwd").stdout)
         .unwrap()
         .replace('\n', "");
-    let file = format!("{pwd}/{}", args.file);
-    let user_config = json_config::read_from(file.clone());
+    let file = format!("{cwd}/{}", args.file);
+    let user_config = json_config::read_from(&file);
     info!("Loaded <blue>{file}</>",);
 
+    // Shared app state
+    let state = State {
+        cwd: &cwd, 
+        path: &user_config.path,
+    };
+
     // Setup git
-    let repo = user_config.repo;
-    let branch = user_config.branch;
-    let workdir = &user_config.workdir;
+    let repo = &user_config.repo;
+    let branch = &user_config.branch;
+    let path = &user_config.path;
 
-    // unique remote name by using a hash
-    let mut hasher = DefaultHasher::new();
-    repo.hash(&mut hasher);
-    let remote = format!("{:x}", hasher.finish());
-
-    // cd into repo, clone beforehand if folder doesn't exist
-    if sh::run(format!("cd {workdir}")).status.code() != Some(0) {
+    // clone repo if path doesnt exist yet
+    if sh::run(format!("cd {path}")).status.code() != Some(0) {
+        info!("{path:?}");
         info!("Cloning <blue>{repo}</>, this may take a while...");
-
-        // clone with a name for the remote instead of the default "origin"
-        let _ = sh::run_strict(format!("git clone {repo} -b {branch} -o {remote} {workdir}"));
+        git::clone(repo, branch, path);
     }
-    info!("Repo at <blue>{workdir}</>");
+    info!("Repo at <blue>{path}</>");
 
     // configure initial state of the repo, before any patches
-    let output = sh::run_at(workdir, format!("git remote add {remote} {repo}"));
-    if output.status.code() != Some(0) {
-        let stderr = String::from_utf8(output.stderr).unwrap();
-        if !stderr.contains("already exists") { 
-            error!("Adding remote failed with\n\t<red>{stderr}</>");
-            exit(1);
-        }
-    }
-    let _ = sh::run_strict_at(workdir, format!("git fetch {remote}"));
-    let _ = sh::run_strict_at(workdir, format!("git checkout {remote}/{branch}"));
-    info!("Working based on <blue>{repo}</> <yellow>/</> <blue>{branch}</>");
+    git::remote_add(repo, path);
+    git::fetch(repo, path);
+    git::checkout(repo, branch, None, path);
+    info!("Working based on <blue>{repo}</> <yellow>@</> <blue>{branch}</>");
 
     info!("Synchronizing submodules, this may take a while...");
-    let _ = sh::run_strict_at(workdir, "qmk git-submodule".to_owned());
-
+    let _ = sh::run_strict_at(path, "qmk git-submodule".to_owned());
 
     // Apply operations
     for operation in user_config.operations {
-        info!("{operation:?}");
+        operation.apply(&state);
     }
-
 
     // #######
     // Compile
@@ -77,23 +79,28 @@ fn main() {
 
     if let Some(keyboard) = user_config.keyboard {
         command.push_str(&format!(" -kb {keyboard}"));
-    } 
-    
-    if let Some(keymap) = user_config.keymap {
-        command.push_str(&format!(" -km {keymap}"));
-    } 
-
-    info!("Compiling");
-    let _ = sh::run_strict_at(workdir, "qmk clean -a".to_owned());
-    let _ = sh::run_strict_at(workdir, command);
-
-    let binaries = "binaries/";
-    info!("Copying into <blue>{binaries}</>");
-    let _ = sh::run(format!("mkdir -p {binaries}"));
-    for ext in ["bin", "hex", "uf2"] {
-        let _ = sh::run(format!("cp {workdir}/*.{ext} {binaries}"));
     }
 
+    if let Some(keymap) = user_config.keymap {
+        command.push_str(&format!(" -km {keymap}"));
+    }
+
+    info!("Compiling");
+    let _ = sh::run_strict_at(path, "qmk clean -a".to_owned());
+    let _ = sh::run_strict_at(path, command);
+
+    let binaries = "binaries/";
+    let _ = sh::run(format!("mkdir -p {binaries}"));
+    for ext in ["bin", "hex", "uf2"] {
+        let _ = sh::run(format!("cp {path}/*.{ext} {binaries}"));
+    }
+    info!("Copied into <blue>{binaries}</>");
+
+    info!("Restoring changes");
+    git::restore_staged(path);
+    git::restore(path);
+    git::clean(path); // remove untracked files
+ 
     info!("<green>Finished</>");
     exit(0);
 }

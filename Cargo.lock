@@ -168,6 +168,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e496a50fda8aacccc86d7529e2c1e0892dbd0f898a6b5645b5561b89c3210efa"
 
 [[package]]
+name = "deser-hjson"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0695da728c87789b03f8c4553100a6397d7eb8397726ec420a65bd414400b51"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "errno"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -235,12 +244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itoa"
-version = "1.0.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af150ab688ff2122fcef229be89cb50dd66af9e01a4ff320cc137eecc9bacc38"
-
-[[package]]
 name = "js-sys"
 version = "0.3.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -302,9 +305,9 @@ name = "qmk_build"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "deser-hjson",
  "log",
  "serde",
- "serde_json",
  "simplelog",
 ]
 
@@ -331,12 +334,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ryu"
-version = "1.0.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
-
-[[package]]
 name = "serde"
 version = "1.0.183"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -354,17 +351,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "serde_json"
-version = "1.0.104"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "076066c5f1078eac5b722a31827a8832fe108bed65dfa75e233c89f8206e976c"
-dependencies = [
- "itoa",
- "ryu",
- "serde",
 ]
 
 [[package]]

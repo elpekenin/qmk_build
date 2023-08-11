@@ -1,28 +1,21 @@
-use std::{path::Path, fs::File, io::BufReader, error::Error, process::exit};
+use std::{
+    error::Error,
+    fmt::{Debug, Display},
+    fs::File,
+    io::BufReader,
+    path::Path,
+    process::exit,
+};
 
 use serde::Deserialize;
 
-use crate::logging::*;
+use crate::{logging::*, operations::Operation};
 
-/// Different patches to be applied to initial state of the repo
-#[derive(Clone, Debug, Deserialize)]
-#[serde(tag = "operation")]
-pub enum Operations {
-    /// Can be used on files or folders, copy whatever contents
-    CmdCp {orig: String, dest: String},
-
-    /// Apply diff on a file
-    CmdDiff {orig: String, dest: String},
-    
-    /// Checkout a file
-    GitCheckout {repo: String, branch: String, path: String},
-}
-
-fn default_workdir() -> String {
+fn default_path() -> String {
     String::from("$HOME/.__qmk_build__")
 }
 
-fn default_operations() -> Vec<Operations> {
+fn default_operations() -> Vec<Operation> {
     Vec::new()
 }
 
@@ -34,8 +27,8 @@ pub struct JsonConfig {
     pub branch: String,
 
     /// Optional, where the copy of the fork will be stored, defaults to $HOME/.__qmk_build__
-    #[serde(default = "default_workdir")]
-    pub workdir: String,
+    #[serde(default = "default_path")]
+    pub path: String,
 
     /// Let user set a fixed value, otherwise let `qmk` infer from config
     pub keyboard: Option<String>,
@@ -43,25 +36,28 @@ pub struct JsonConfig {
 
     /// Set of changes to be performed
     #[serde(default = "default_operations")]
-    pub operations: Vec<Operations>
+    pub operations: Vec<Operation>,
 }
 
-fn try_read_from<P: AsRef<Path>>(path: P) -> Result<JsonConfig, Box<dyn Error>> {
+fn try_read_from<P: AsRef<Path>>(path: &P) -> Result<JsonConfig, Box<dyn Error>> {
     // Open the file in read-only mode with buffer.
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
-    let config = serde_json::from_reader(reader)?;
+    let config = deser_hjson::from_reader(reader)?;
 
     Ok(config)
 }
 
 /// Parse the contents of the config file
-pub fn read_from<P: AsRef<Path>>(path: P) -> JsonConfig {
+pub fn read_from<P: AsRef<Path> + Display>(path: &P) -> JsonConfig {
     match try_read_from(path) {
         Ok(config) => config,
         Err(e) => {
-            error!("Parsing config file\n\t<red>{}</>", e.to_string());
+            error!(
+                "Parsing config file (<blue>{path}</>)\n\t<red>{}</>",
+                e.to_string()
+            );
             exit(1);
         }
     }

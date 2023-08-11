@@ -1,6 +1,21 @@
 {
+    // Example file
+    // Note that this is HJSON, easier to work with
     "repo": "https://github.com/qmk/qmk_firmware",
     "branch": "develop",
     "keyboard": "handwired/onekey/rp2040",
-    "keymap": "default"
+    "keymap": "default",
+    "operations": [
+        // {
+        //     "operation": "cp",
+        //     "orig": "example.txt",
+        //     "dest": "quantum"
+        // },
+        {
+            "operation": "checkout",
+            "files": ["drivers/painter", "quantum/painter"],
+            "repo": "https://github.com/elpekenin/qmk_firmware",
+            "branch": "feature/qp-sharp"
+        }
+    ]
 }
