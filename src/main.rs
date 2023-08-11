@@ -31,9 +31,7 @@ fn main() {
     info!("Welcome to <blue>QMK build (alpha)</>");
 
     // Read config file
-    let cwd = String::from_utf8(sh::run_strict("pwd").stdout)
-        .unwrap()
-        .replace('\n', "");
+    let cwd = sh::get_cwd();
     let file = format!("{cwd}/{}", args.file);
     let user_config = json_config::read_from(&file);
     info!("Loaded <blue>{file}</>",);
@@ -44,7 +42,6 @@ fn main() {
         path: &user_config.path,
     };
 
-    // Setup git
     let repo = &user_config.repo;
     let branch = &user_config.branch;
     let path = &user_config.path;
@@ -57,24 +54,31 @@ fn main() {
     }
     info!("Repo at <blue>{path}</>");
 
-    // configure initial state of the repo, before any patches
+
+    // clone initial repo @ branch
     git::remote_add(repo, path);
     git::fetch(repo, path);
     git::checkout(repo, branch, None, path);
+
+    // restore potential diff's
+    git::restore_staged(path);
+    git::restore(path);
+    git::clean(path); // remove untracked files
+
     info!("Working based on <blue>{repo}</> <yellow>@</> <blue>{branch}</>");
+
 
     info!("Synchronizing submodules, this may take a while...");
     let _ = sh::run_strict_at(path, "qmk git-submodule".to_owned());
+
 
     // Apply operations
     for operation in user_config.operations {
         operation.apply(&state);
     }
 
-    // #######
-    // Compile
-    // #######
 
+    // Compile
     let mut command = String::from("qmk compile");
 
     if let Some(keyboard) = user_config.keyboard {
@@ -96,11 +100,7 @@ fn main() {
     }
     info!("Copied into <blue>{binaries}</>");
 
-    info!("Restoring changes");
-    git::restore_staged(path);
-    git::restore(path);
-    git::clean(path); // remove untracked files
- 
+
     info!("<green>Finished</>");
     exit(0);
 }

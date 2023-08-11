@@ -44,3 +44,9 @@ pub fn run_at<S: AsRef<OsStr> + Clone + Display>(path: &S, command: S) -> Output
 pub fn run_strict_at<S: AsRef<OsStr> + Clone + Display>(path: &S, command: S) -> Output {
     run_strict(format!("cd {path} && {command}"))
 }
+
+pub fn get_cwd() -> String {
+    String::from_utf8(run_strict("pwd").stdout)
+        .unwrap()
+        .replace('\n', "")
+}

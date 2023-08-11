@@ -6,16 +6,22 @@
     "keyboard": "handwired/onekey/rp2040",
     "keymap": "default",
     "operations": [
-        // {
-        //     "operation": "cp",
-        //     "orig": "example.txt",
-        //     "dest": "quantum"
-        // },
+        {
+            "operation": "cp",
+            "orig": "example.txt",
+            "dest": "quantum"
+        },
         {
             "operation": "checkout",
             "files": ["drivers/painter", "quantum/painter"],
             "repo": "https://github.com/elpekenin/qmk_firmware",
             "branch": "feature/qp-sharp"
+        },
+        {
+            "operation": "exec",
+            "command": "clear",
+            "at": "$HOME/.__qmk_build__",
+            "can_fail": true
         }
     ]
 }
