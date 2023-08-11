@@ -10,7 +10,6 @@ mod sh;
 
 use std::{process::exit, collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
-
 /// Entrypoint for the app
 fn main() {
     logging::init();
@@ -19,7 +18,12 @@ fn main() {
     info!("Welcome to <blue>QMK build (alpha)</>");
     
     // Read config file
-    let file = args.file;
+    let pwd = String::from_utf8(
+            sh::run_strict("pwd").stdout
+        )
+        .unwrap()
+        .replace('\n', "");
+    let file = format!("{pwd}/{}", args.file);
     let user_config = json_config::read_from(file.clone());
     info!("Loaded <blue>{file}</>",);
 
@@ -53,10 +57,10 @@ fn main() {
     }
     let _ = sh::run_strict_at(workdir, format!("git fetch {remote}"));
     let _ = sh::run_strict_at(workdir, format!("git checkout {remote}/{branch}"));
-    info!("Working on <blue>{repo}</> <yellow>/</> <blue>{branch}</>");
+    info!("Working based on <blue>{repo}</> <yellow>/</> <blue>{branch}</>");
 
+    info!("Synchronizing submodules, this may take a while...");
     let _ = sh::run_strict_at(workdir, "qmk git-submodule".to_owned());
-    info!("Synchronized submodules");
 
 
     // Apply operations
@@ -68,7 +72,6 @@ fn main() {
     // #######
     // Compile
     // #######
-    
 
     let mut command = String::from("qmk compile");
 
@@ -80,8 +83,17 @@ fn main() {
         command.push_str(&format!(" -km {keymap}"));
     } 
 
+    info!("Compiling");
     let _ = sh::run_strict_at(workdir, "qmk clean -a".to_owned());
     let _ = sh::run_strict_at(workdir, command);
+
+    let binaries = "binaries/";
+    info!("Copying into <blue>{binaries}</>");
+    let _ = sh::run(format!("mkdir -p {binaries}"));
+    for ext in ["bin", "hex", "uf2"] {
+        let _ = sh::run(format!("cp {workdir}/*.{ext} {binaries}"));
+    }
+
     info!("<green>Finished</>");
     exit(0);
 }
