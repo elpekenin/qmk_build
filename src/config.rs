@@ -21,7 +21,7 @@ fn default_operations() -> Vec<Operation> {
 
 /// Struct to define the contents expected on JSON file
 #[derive(Clone, Debug, Deserialize)]
-pub struct JsonConfig {
+pub struct BuildFile {
     /// Required, initial state of the repo
     pub repo: String,
     pub branch: String,
@@ -39,7 +39,7 @@ pub struct JsonConfig {
     pub operations: Vec<Operation>,
 }
 
-fn try_read_from<P: AsRef<Path>>(path: &P) -> Result<JsonConfig, Box<dyn Error>> {
+fn try_read_from<P: AsRef<Path>>(path: &P) -> Result<BuildFile, Box<dyn Error>> {
     // Open the file in read-only mode with buffer.
     let file = File::open(path)?;
     let reader = BufReader::new(file);
@@ -50,9 +50,12 @@ fn try_read_from<P: AsRef<Path>>(path: &P) -> Result<JsonConfig, Box<dyn Error>>
 }
 
 /// Parse the contents of the config file
-pub fn read_from<P: AsRef<Path> + Display>(path: &P) -> JsonConfig {
+pub fn read_from<P: AsRef<Path> + Display>(path: &P) -> BuildFile {
     match try_read_from(path) {
-        Ok(config) => config,
+        Ok(config) => {
+            info!("Loaded <blue>{path}</>",);
+            config
+        },
         Err(e) => {
             error!(
                 "Parsing config file (<blue>{path}</>)\n\t<red>{}</>",

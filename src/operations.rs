@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::{State, git, logging::*, sh};
+use crate::{logging::*, sh, BuildConfig};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Cp {
@@ -27,11 +27,11 @@ pub struct Checkout {
 }
 
 fn default_exec_at() -> String {
-    sh::get_cwd()
+    ".".to_owned()
 }
 
-fn default_can_fail() -> bool {
-    false
+fn default_strict() -> bool {
+    true
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -42,20 +42,19 @@ pub struct Exec {
     #[serde(default = "default_exec_at")]
     at: String,
     // allowed to fail (defaults to no)
-    #[serde(default = "default_can_fail")]
-    can_fail: bool,
+    #[serde(default = "default_strict")]
+    strict: bool,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Script {
     // script to execute (eg a python script, thanks to shebang)
     file: String,
-    #[serde(default = "default_can_fail")]
-    can_fail: bool,
+    #[serde(default = "default_strict")]
+    strict: bool,
 }
 
 #[allow(non_camel_case_types)]
-
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "operation")]
 /// Different patches to be applied to initial state of the repo
@@ -77,55 +76,57 @@ pub enum Operation {
 }
 #[warn(non_camel_case_types)]
 
-
 impl Operation {
-    pub fn apply(&self, state: &State) {
+    pub fn apply(&self, state: &BuildConfig) {
         match self {
             Operation::cp(ref cp) => {
                 let orig = &cp.orig;
-                let dest = &format!("{}/{}", &state.path, &cp.dest);
+                let dest = &format!("{}/{}", &state.git_repo.path, &cp.dest);
 
-                info!("Applying cd: <blue>{}</> <yellow>-></> <blue>{}</>", orig, dest);
+                info!(
+                    "Applying cd: <blue>{}</> <green>-></> <blue>{}</>",
+                    orig, dest
+                );
 
-                let _ = sh::run_strict(format!("cp -r {orig} {dest}"));
-            },
+                let _ = sh::run(format!("cp -r {orig} {dest}"), ".", true);
+            }
             Operation::diff(ref diff) => {
                 info!("Applying patch: <blue>{}</>", diff.patch);
 
-                let _ = sh::run_strict(format!("cp {} {}", diff.patch, state.cwd));
-                git::apply(&diff.patch, state.path);
-            },
+                let _ = sh::run(
+                    format!("cp {} {}", diff.patch, state.git_repo.path),
+                    ".",
+                    true,
+                );
+                state.git_repo.apply(&diff.patch);
+            }
             Operation::checkout(ref checkout) => {
-                info!("Checking out <blue>{:?}</> from <blue>{}</> <yellow>@</> <blue>{}</>", checkout.files, checkout.repo, checkout.branch);
+                info!(
+                    "Checking out <blue>{:?}</> from <blue>{}</> <green>@</> <blue>{}</>",
+                    checkout.files, checkout.repo, checkout.branch
+                );
 
-                git::remote_add(&checkout.repo, state.path);
-                git::fetch(&checkout.repo, state.path);
-                git::checkout(&checkout.repo, &checkout.branch, Some(&checkout.files), state.path);
-            },
+                state.git_repo.remote_add(&checkout.repo);
+                state.git_repo.fetch(&checkout.repo);
+                state
+                    .git_repo
+                    .checkout(&checkout.repo, &checkout.branch, Some(&checkout.files));
+            }
             Operation::exec(ref exec) => {
-                let can_fail = if exec.can_fail {
-                    ""
-                } else {
-                    " <red>not</>"
-                };
-                info!("Executing <blue>{}</> at <blue>{}</>. It can{} fail", &exec.command, &exec.at, can_fail);
+                let can_fail = if exec.strict { " <red>not</>" } else { "" };
+                info!(
+                    "Executing <blue>{}</> at <blue>{}</> -- It can{} fail",
+                    &exec.command, &exec.at, can_fail
+                );
 
                 let command = exec.command.clone();
-                if exec.can_fail {
-                    sh::run_at(&exec.at, command);
-                } else {
-                    sh::run_strict_at(&exec.at, command);
-                }
-            },
+                sh::run(command, &exec.at, exec.strict);
+            }
             Operation::script(ref script) => {
                 info!("Running script <blue>{}</>", &script.file);
 
                 let file = script.file.clone();
-                if script.can_fail {
-                    sh::run(file);
-                } else {
-                    sh::run_strict(file);
-                }
+                sh::run(file, ".", script.strict);
             }
         }
     }

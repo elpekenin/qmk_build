@@ -6,9 +6,13 @@ use std::{
 
 use crate::logging::*;
 
-/// Run a command on the shell
-pub fn run<S: AsRef<OsStr> + Clone + Display>(command: S) -> Output {
-    match Command::new("sh").arg("-c").arg(command.clone()).output() {
+/// Run a command on the shell, at a given location, allowing it (or not) to fail
+pub fn run<S: AsRef<OsStr> + Clone + Display>(command: S, at: impl Into<String>, strict: bool) -> Output {
+    let output = match Command::new("sh")
+        .arg("-c")
+        .arg(format!("cd {} && {}", at.into(), command))
+        .output()
+    {
         Ok(output) => output,
         Err(e) => {
             error!(
@@ -17,14 +21,9 @@ pub fn run<S: AsRef<OsStr> + Clone + Display>(command: S) -> Output {
             );
             exit(1);
         }
-    }
-}
+    };
 
-/// Run a command on the shell, ensuring it returns success
-pub fn run_strict<S: AsRef<OsStr> + Clone + Display>(command: S) -> Output {
-    let output = run(command.clone());
-
-    if output.status.code() != Some(0) {
+    if strict && output.status.code() != Some(0) {
         error!(
             "Running command <yellow>{command}</>\n\t<red>{}</>",
             String::from_utf8(output.stderr)
@@ -35,18 +34,4 @@ pub fn run_strict<S: AsRef<OsStr> + Clone + Display>(command: S) -> Output {
     }
 
     output
-}
-
-pub fn run_at<S: AsRef<OsStr> + Clone + Display>(path: &S, command: S) -> Output {
-    run(format!("cd {path} && {command}"))
-}
-
-pub fn run_strict_at<S: AsRef<OsStr> + Clone + Display>(path: &S, command: S) -> Output {
-    run_strict(format!("cd {path} && {command}"))
-}
-
-pub fn get_cwd() -> String {
-    String::from_utf8(run_strict("pwd").stdout)
-        .unwrap()
-        .replace('\n', "")
 }

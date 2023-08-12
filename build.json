@@ -1,6 +1,9 @@
 {
-    // Example file
     // Note that this is HJSON, easier to work with
+
+    // Commands are run from the location where the tool is invoked
+    // AKA: **not** where the json is (should be the same path in most usecases anyway)
+
     "repo": "https://github.com/qmk/qmk_firmware",
     "branch": "develop",
     "keyboard": "handwired/onekey/rp2040",
