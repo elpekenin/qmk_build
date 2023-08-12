@@ -1,0 +1,10 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "*build.json"
+            ],
+            "url": "./build_file.jsonschema"
+        }
+    ]
+}

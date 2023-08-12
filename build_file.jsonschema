@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BuildFile",
+  "description": "Struct to define the contents expected on JSON file",
+  "type": "object",
+  "required": [
+    "branch",
+    "repo"
+  ],
+  "properties": {
+    "branch": {
+      "type": "string"
+    },
+    "default_compilation": {
+      "description": "Either you want a default compilation command (qmk compile) or not (provide your own command/script at a step)",
+      "default": true,
+      "type": "boolean"
+    },
+    "keyboard": {
+      "description": "Let user set a fixed value, otherwise let `qmk` infer from config",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "keymap": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "operations": {
+      "description": "Set of changes to be performed",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Operation"
+      }
+    },
+    "path": {
+      "description": "Optional, where the copy of the fork will be stored, defaults to $HOME/.__qmk_build__",
+      "default": "$HOME/.__qmk_build__",
+      "type": "string"
+    },
+    "repo": {
+      "description": "Required, initial state of the repo",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "Operation": {
+      "description": "Different patches to be applied to initial state of the repo",
+      "oneOf": [
+        {
+          "description": "Can be used on files or folders, copy whatever contents",
+          "type": "object",
+          "required": [
+            "dest",
+            "operation",
+            "orig"
+          ],
+          "properties": {
+            "dest": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "cp"
+              ]
+            },
+            "orig": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "description": "Apply diff on a file",
+          "type": "object",
+          "required": [
+            "operation",
+            "patch"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "diff"
+              ]
+            },
+            "patch": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "description": "Grab files/folders from another branch (and repo?)",
+          "type": "object",
+          "required": [
+            "branch",
+            "files",
+            "operation",
+            "repo"
+          ],
+          "properties": {
+            "branch": {
+              "type": "string"
+            },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "checkout"
+              ]
+            },
+            "repo": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "description": "Execute a command",
+          "type": "object",
+          "required": [
+            "command",
+            "operation"
+          ],
+          "properties": {
+            "at": {
+              "default": ".",
+              "type": "string"
+            },
+            "command": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "exec"
+              ]
+            },
+            "strict": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "description": "Execute a file",
+          "type": "object",
+          "required": [
+            "file",
+            "operation"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "script"
+              ]
+            },
+            "strict": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

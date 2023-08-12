@@ -1,4 +1,4 @@
-use std::process::exit;
+use std::{fs::File, io::Write, process::exit};
 
 use clap::Parser;
 mod cli;
@@ -8,10 +8,10 @@ mod config;
 mod git;
 
 mod logging;
-use cli::CliArgs;
 use config::BuildFile;
-use git::GitRepo;
+use git::Repository;
 use logging::*;
+use schemars::schema_for;
 
 mod operations;
 
@@ -19,21 +19,31 @@ mod sh;
 
 /// Pack together any information that operations might need
 pub struct BuildConfig {
-    cli_args: CliArgs,
-    git_repo: GitRepo,
+    git_repo: Repository,
     build_file: BuildFile,
 }
 
 impl BuildConfig {
     fn new() -> Self {
-        info!("Welcome to <blue>QMK build (alpha)</>");
+        let cli_args = cli::Args::parse();
 
-        let cli_args = cli::CliArgs::parse();
+        if cli_args.generate_schema {
+            let schema = schema_for!(BuildFile);
+            let schema_str = serde_json::to_string_pretty(&schema).unwrap();
+
+            let mut file = File::create("build_file.jsonschema").unwrap();
+            let _ = file.write_all(schema_str.as_bytes());
+
+            info!("Schema generated");
+            exit(0)
+        }
+
         let build_file = config::read_from(&cli_args.file);
-        let git_repo = git::GitRepo::init(&build_file.path, &build_file.repo, &build_file.branch);
+        let git_repo =
+            git::Repository::init(&build_file.path, &build_file.repo, &build_file.branch);
 
+        info!("Welcome to <blue>QMK build (alpha)</>");
         Self {
-            cli_args,
             git_repo,
             build_file,
         }
@@ -45,8 +55,7 @@ impl BuildConfig {
         }
     }
 
-    pub fn compile(&self) {
-        // Compile
+    fn default_compilation(&self) {
         let mut command = String::from("qmk compile");
 
         if let Some(keyboard) = &self.build_file.keyboard {
@@ -63,9 +72,19 @@ impl BuildConfig {
         let binaries = "binaries/";
         let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
         for ext in ["bin", "hex", "uf2"] {
-            let _ = sh::run(format!("cp {}/*.{ext} {binaries}", self.git_repo.path), ".", false);
+            let _ = sh::run(
+                format!("cp {}/*.{ext} {binaries}", self.git_repo.path),
+                ".",
+                false,
+            );
         }
         info!("Copied into <blue>{binaries}</>");
+    }
+
+    pub fn compile(&self) {
+        if self.build_file.default_compilation {
+            self.default_compilation();
+        }
     }
 }
 

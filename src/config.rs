@@ -7,6 +7,7 @@ use std::{
     process::exit,
 };
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{logging::*, operations::Operation};
@@ -19,8 +20,12 @@ fn default_operations() -> Vec<Operation> {
     Vec::new()
 }
 
+fn _true() -> bool {
+    true
+}
+
 /// Struct to define the contents expected on JSON file
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct BuildFile {
     /// Required, initial state of the repo
     pub repo: String,
@@ -37,6 +42,11 @@ pub struct BuildFile {
     /// Set of changes to be performed
     #[serde(default = "default_operations")]
     pub operations: Vec<Operation>,
+
+    /// Either you want a default compilation command (qmk compile)
+    /// or not (provide your own command/script at a step)
+    #[serde(default = "_true")]
+    pub default_compilation: bool,
 }
 
 fn try_read_from<P: AsRef<Path>>(path: &P) -> Result<BuildFile, Box<dyn Error>> {

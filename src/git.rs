@@ -14,46 +14,45 @@ fn hash(repo: &String) -> String {
     format!("{:x}", hasher.finish())
 }
 
-pub struct GitRepo {
+pub struct Repository {
     // foler where the repo is
     pub path: String,
 }
 
-impl GitRepo {
+impl Repository {
     pub fn run<S: AsRef<OsStr> + Clone + Display>(&self, command: S, strict: bool) -> Output {
         sh::run(command, &self.path, strict)
     }
 
     pub fn init(path: impl Into<String>, repo: &String, branch: &String) -> Self {
         let path = path.into();
-        let _self = Self { path };
+        let self_ = Self { path };
 
         // clone repo if path doesnt exist yet
-        if sh::run(format!("cd {}", _self.path), ".", false)
+        if sh::run(format!("cd {}", self_.path), ".", false)
             .status
             .code()
             != Some(0)
         {
             info!("Cloning <blue>{repo}</>, this may take a while...");
-            _self.clone(repo, branch);
+            self_.clone(repo, branch);
         }
 
-        info!("Repo at <blue>{}</>", _self.path);
+        info!("Repo at <blue>{}</>", self_.path);
 
-        _self.remote_add(repo);
-        _self.fetch(repo);
-        _self.checkout(repo, branch, None);
+        self_.remote_add(repo);
+        self_.fetch(repo);
+        self_.checkout(repo, branch, None);
 
-        _self.restore_staged();
-        _self.restore();
-        _self.clean();
+        self_.reset_hard();
+        self_.clean();
 
         info!("Working based on <blue>{repo}</> <green>@</> <blue>{branch}</>");
 
         info!("Synchronizing submodules, this may take a while...");
-        let _ = _self.run("qmk git-submodule", true);
+        let _ = self_.run("qmk git-submodule", true);
 
-        _self
+        self_
     }
 
     pub fn clone(&self, repo: &String, branch: &String) {
@@ -105,15 +104,11 @@ impl GitRepo {
         let _ = self.run(format!("git apply {file}"), true);
     }
 
-    pub fn restore_staged(&self) {
-        let _ = self.run("git restore --staged .", true);
-    }
-
-    pub fn restore(&self) {
-        let _ = self.run("git restore .", true);
+    pub fn reset_hard(&self) {
+        let _ = self.run("git reset --hard", true);
     }
 
     pub fn clean(&self) {
-        let _ = self.run("git clean -f -x", true);
+        let _ = self.run("git clean -dfx", true);
     }
 }

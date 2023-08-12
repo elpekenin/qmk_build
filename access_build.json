@@ -1,0 +1,35 @@
+{
+    // WIP, still not compiling
+    "repo": "https://github.com/qmk/qmk_firmware",
+    "branch": "develop",
+    "keyboard": "elpekenin/access",
+    "keymap": "elpekenin",
+    "default_compilation": false,
+    "operations": [
+        {
+            "operation": "exec",
+            "command": "mkdir -p keyboards/elpekenin",
+            "at": "$HOME/.__qmk_build__"
+        },
+        {
+            "operation": "cp",
+            "orig": "keyboards/access",
+            "dest": "keyboards/elpekenin"
+        },
+        {
+            "operation": "exec",
+            "command": "mkdir -p users/elpekenin",
+            "at": "$HOME/.__qmk_build__"
+        },
+        {
+            "operation": "cp",
+            "orig": "userspace",
+            "dest": "users/elpekenin"
+        },
+        {
+            "operation": "exec",
+            "command": "keyboards/elpekenin/access/compile",
+            "at": "$HOME/.__qmk_build__"
+        }
+    ]
+}

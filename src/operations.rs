@@ -1,8 +1,9 @@
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 use crate::{logging::*, sh, BuildConfig};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Cp {
     // origin path
     orig: String,
@@ -10,13 +11,13 @@ pub struct Cp {
     dest: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Diff {
     // path file to be applied
     patch: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Checkout {
     // repo to check from
     repo: String,
@@ -34,7 +35,7 @@ fn default_strict() -> bool {
     true
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Exec {
     // command to execute
     command: String,
@@ -46,7 +47,7 @@ pub struct Exec {
     strict: bool,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Script {
     // script to execute (eg a python script, thanks to shebang)
     file: String,
@@ -54,32 +55,30 @@ pub struct Script {
     strict: bool,
 }
 
-#[allow(non_camel_case_types)]
-#[derive(Clone, Debug, Deserialize)]
-#[serde(tag = "operation")]
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
+#[serde(tag = "operation", rename_all = "snake_case")]
 /// Different patches to be applied to initial state of the repo
 pub enum Operation {
     /// Can be used on files or folders, copy whatever contents
-    cp(Cp),
+    Cp(Cp),
 
     /// Apply diff on a file
-    diff(Diff),
+    Diff(Diff),
 
     /// Grab files/folders from another branch (and repo?)
-    checkout(Checkout),
+    Checkout(Checkout),
 
     /// Execute a command
-    exec(Exec),
+    Exec(Exec),
 
     /// Execute a file
-    script(Script),
+    Script(Script),
 }
-#[warn(non_camel_case_types)]
 
 impl Operation {
     pub fn apply(&self, state: &BuildConfig) {
         match self {
-            Operation::cp(ref cp) => {
+            Operation::Cp(ref cp) => {
                 let orig = &cp.orig;
                 let dest = &format!("{}/{}", &state.git_repo.path, &cp.dest);
 
@@ -90,7 +89,7 @@ impl Operation {
 
                 let _ = sh::run(format!("cp -r {orig} {dest}"), ".", true);
             }
-            Operation::diff(ref diff) => {
+            Operation::Diff(ref diff) => {
                 info!("Applying patch: <blue>{}</>", diff.patch);
 
                 let _ = sh::run(
@@ -100,7 +99,7 @@ impl Operation {
                 );
                 state.git_repo.apply(&diff.patch);
             }
-            Operation::checkout(ref checkout) => {
+            Operation::Checkout(ref checkout) => {
                 info!(
                     "Checking out <blue>{:?}</> from <blue>{}</> <green>@</> <blue>{}</>",
                     checkout.files, checkout.repo, checkout.branch
@@ -112,7 +111,7 @@ impl Operation {
                     .git_repo
                     .checkout(&checkout.repo, &checkout.branch, Some(&checkout.files));
             }
-            Operation::exec(ref exec) => {
+            Operation::Exec(ref exec) => {
                 let can_fail = if exec.strict { " <red>not</>" } else { "" };
                 info!(
                     "Executing <blue>{}</> at <blue>{}</> -- It can{} fail",
@@ -122,7 +121,7 @@ impl Operation {
                 let command = exec.command.clone();
                 sh::run(command, &exec.at, exec.strict);
             }
-            Operation::script(ref script) => {
+            Operation::Script(ref script) => {
                 info!("Running script <blue>{}</>", &script.file);
 
                 let file = script.file.clone();
