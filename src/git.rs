@@ -6,7 +6,7 @@ use std::{
     process::{exit, Output},
 };
 
-use crate::{logging::*, sh};
+use crate::{logging::{info, error, log, paris}, sh};
 
 fn hash(repo: &String) -> String {
     let mut hasher = DefaultHasher::new();

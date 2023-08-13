@@ -4,7 +4,7 @@ use std::{
     process::{exit, Command, Output},
 };
 
-use crate::logging::*;
+use crate::logging::{error, log, paris};
 
 /// Run a command on the shell, at a given location, allowing it (or not) to fail
 pub fn run<S: AsRef<OsStr> + Clone + Display>(command: S, at: impl Into<String>, strict: bool) -> Output {

@@ -10,7 +10,7 @@ mod git;
 mod logging;
 use config::BuildFile;
 use git::Repository;
-use logging::*;
+use logging::{info, log, paris};
 use schemars::schema_for;
 
 mod operations;
@@ -31,7 +31,7 @@ impl BuildConfig {
             let schema = schema_for!(BuildFile);
             let schema_str = serde_json::to_string_pretty(&schema).unwrap();
 
-            let mut file = File::create("build_file.jsonschema").unwrap();
+            let mut file = File::create("schema").unwrap();
             let _ = file.write_all(schema_str.as_bytes());
 
             info!("Schema generated");

@@ -1,3 +1,0 @@
-#!/usr/bin/bash
-
-cargo clippy && cargo build && clear

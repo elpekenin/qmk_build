@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::{logging::*, sh, BuildConfig};
+use crate::{logging::{info, log, paris}, sh, BuildConfig};
 
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Cp {

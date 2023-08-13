@@ -10,7 +10,7 @@ use std::{
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::{logging::*, operations::Operation};
+use crate::{logging::{info, error, log, paris}, operations::Operation};
 
 fn default_path() -> String {
     String::from("$HOME/.__qmk_build__")

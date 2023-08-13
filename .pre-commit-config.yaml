@@ -1,0 +1,26 @@
+fail_fast: true
+
+repos:
+  - repo: local
+    hooks:
+      - id: lint
+        name: Lint qmk_build
+        entry: cargo clippy -- -Wclippy::pedantic -Dwarnings
+        pass_filenames: false
+        language: system
+        types: [rust]
+
+      - id: build
+        name: Compile and install qmk_build
+        entry: cargo install --path .
+        pass_filenames: false
+        language: system
+        types: [rust]
+
+      # Keep schema always up to date
+      - id: schema
+        name: Generate jsonschema
+        entry: qmk_build --generate-schema
+        pass_filenames: false
+        language: system
+        types: [rust]
