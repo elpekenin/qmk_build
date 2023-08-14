@@ -6,13 +6,10 @@ use std::{
     process::{exit, Output},
 };
 
-use crate::{logging::{info, error, log, paris}, sh};
-
-fn hash(repo: &String) -> String {
-    let mut hasher = DefaultHasher::new();
-    repo.hash(&mut hasher);
-    format!("{:x}", hasher.finish())
-}
+use crate::{
+    logging::{error, info, log, paris},
+    sh,
+};
 
 pub struct Repository {
     // foler where the repo is
@@ -22,6 +19,12 @@ pub struct Repository {
 impl Repository {
     pub fn run<S: AsRef<OsStr> + Clone + Display>(&self, command: S, strict: bool) -> Output {
         sh::run(command, &self.path, strict)
+    }
+
+    fn remote(repo: &String) -> String {
+        let mut hasher = DefaultHasher::new();
+        repo.hash(&mut hasher);
+        format!("{:x}", hasher.finish())
     }
 
     pub fn init(path: impl Into<String>, repo: &String, branch: &String) -> Self {
@@ -40,12 +43,18 @@ impl Repository {
 
         info!("Repo at <blue>{}</>", self_.path);
 
-        self_.remote_add(repo);
-        self_.fetch(repo);
-        self_.checkout(repo, branch, None);
-
+        // Get into desired branch
+        // Remove any stray change
+        // Delete branches other than working one
         self_.reset_hard();
+        self_.remote_add(repo);
+        self_.fetch(repo, None);
+        self_.checkout(repo, branch, None);
         self_.clean();
+        self_.run(
+            format!("git branch | grep -v '{branch}' | xargs --no-run-if-empty git branch -D"),
+            true,
+        );
 
         info!("Working based on <blue>{repo}</> <green>@</> <blue>{branch}</>");
 
@@ -57,7 +66,7 @@ impl Repository {
 
     pub fn clone(&self, repo: &String, branch: &String) {
         let path = &self.path;
-        let remote = hash(repo);
+        let remote = Self::remote(repo);
 
         let _ = sh::run(
             format!("git clone {repo} -b {branch} -o {remote} {path}"),
@@ -67,7 +76,7 @@ impl Repository {
     }
 
     pub fn remote_add(&self, repo: &String) {
-        let remote = hash(repo);
+        let remote = Self::remote(repo);
 
         let output = self.run(format!("git remote add {remote} {repo}"), false);
 
@@ -80,13 +89,19 @@ impl Repository {
         }
     }
 
-    pub fn fetch(&self, repo: &String) {
-        let remote = hash(repo);
-        let _ = self.run(format!("git fetch {remote}"), true);
+    pub fn fetch(&self, repo: &String, branch: Option<&String>) {
+        let remote = Self::remote(repo);
+
+        let mut command = format!("git fetch {remote}");
+        if let Some(branch) = branch {
+            command.push_str(&format!(" {branch}"));
+        }
+
+        let _ = self.run(command, true);
     }
 
     pub fn checkout(&self, repo: &String, branch: &String, files: Option<&Vec<String>>) {
-        let remote = hash(repo);
+        let remote = Self::remote(repo);
 
         let mut command = format!("git checkout {remote}/{branch}");
         if let Some(files) = files {
@@ -110,5 +125,9 @@ impl Repository {
 
     pub fn clean(&self) {
         let _ = self.run("git clean -dfx", true);
+    }
+
+    pub fn merge_local_branch(&self, branch: &String) {
+        let _ = self.run(format!("git merge {branch}"), true);
     }
 }

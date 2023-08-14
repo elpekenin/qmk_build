@@ -3,6 +3,7 @@ fail_fast: true
 repos:
   - repo: local
     hooks:
+      # Force code to be (somewhat) clea
       - id: lint
         name: Lint qmk_build
         entry: cargo clippy -- -Wclippy::pedantic -Dwarnings
@@ -10,6 +11,7 @@ repos:
         language: system
         types: [rust]
 
+      # Generate the binary and add it to $PATH
       - id: build
         name: Compile and install qmk_build
         entry: cargo install --path .

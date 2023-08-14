@@ -38,11 +38,12 @@ impl BuildConfig {
             exit(0)
         }
 
+        info!("Welcome to <blue>QMK build (alpha)</>");
+
         let build_file = config::read_from(&cli_args.file);
         let git_repo =
             git::Repository::init(&build_file.path, &build_file.repo, &build_file.branch);
 
-        info!("Welcome to <blue>QMK build (alpha)</>");
         Self {
             git_repo,
             build_file,

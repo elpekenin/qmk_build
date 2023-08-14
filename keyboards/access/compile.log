@@ -1,0 +1,13 @@
+Ψ Compiling keymap with gmake --jobs=20 --output-sync=target MAKECMDGOALS=uf2-split-left elpekenin/access:elpekenin
+quantum/split_common/split_util.c: In function 'split_pre_init':
+quantum/split_common/split_util.c:184:21: note: '#pragma message: Faking EE_HANDS for left hand'
+  184 | #            pragma message "Faking EE_HANDS for left hand"
+      |                     ^~~~~~~
+
+-----------------------
+
+Ψ Compiling keymap with gmake --jobs=20 --output-sync=target MAKECMDGOALS=uf2-split-right elpekenin/access:elpekenin
+quantum/split_common/split_util.c: In function 'split_pre_init':
+quantum/split_common/split_util.c:187:21: note: '#pragma message: Faking EE_HANDS for right hand'
+  187 | #            pragma message "Faking EE_HANDS for right hand"
+      |                     ^~~~~~~

@@ -1,5 +1,5 @@
 {
-    // WIP, still not compiling
+    // WIP
     "repo": "https://github.com/qmk/qmk_firmware",
     "branch": "develop",
     "keyboard": "elpekenin/access",
@@ -27,6 +27,24 @@
             "dest": "users/elpekenin"
         },
         {
+            "description": "tz's OLED",
+            "operation": "pr",
+            "id": 19997
+        },
+        {
+            "description": "3-color e-Ink",
+            "operation": "pr",
+            "id": 20032
+        },
+        {
+            "description": "IL91874",
+            "operation": "checkout",
+            "files": ["drivers/painter/il91874"],
+            "repo": "https://github.com/elpekenin/qmk_firmware",
+            "branch": "il91874"
+        },
+        {
+            "description": "Custom compile script",
             "operation": "exec",
             "command": "keyboards/elpekenin/access/compile",
             "at": "$HOME/.__qmk_build__"

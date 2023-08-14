@@ -59,6 +59,12 @@
             "orig"
           ],
           "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "dest": {
               "type": "string"
             },
@@ -81,6 +87,12 @@
             "patch"
           ],
           "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "operation": {
               "type": "string",
               "enum": [
@@ -104,6 +116,12 @@
           "properties": {
             "branch": {
               "type": "string"
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "files": {
               "type": "array",
@@ -137,6 +155,12 @@
             "command": {
               "type": "string"
             },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "operation": {
               "type": "string",
               "enum": [
@@ -157,6 +181,12 @@
             "operation"
           ],
           "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "file": {
               "type": "string"
             },
@@ -169,6 +199,39 @@
             "strict": {
               "default": true,
               "type": "boolean"
+            }
+          }
+        },
+        {
+          "description": "Grab diff from a PR",
+          "type": "object",
+          "required": [
+            "id",
+            "operation"
+          ],
+          "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "id": {
+              "type": "integer",
+              "format": "uint16",
+              "minimum": 0.0
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "pr"
+              ]
+            },
+            "repo": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         }

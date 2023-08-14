@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+# Utility script to compile both halves at once
+# Execute from your QMK base dir for relative paths to work as expected
+
+KB=elpekenin/access
+KM=elpekenin
+BIN="${KB//\//_}_${KM}.uf2"
+
+for SIDE in left right
+do
+    qmk compile -kb $KB -km $KM -c -e MAKECMDGOALS=uf2-split-$SIDE > /dev/null || exit
+    cp $BIN $SIDE-$BIN
+done
+
+rm $BIN
