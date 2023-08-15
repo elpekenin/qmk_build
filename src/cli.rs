@@ -9,9 +9,8 @@ These changes are defined in a json file, with actions like copying local files,
 #[command(about = "CLI to ease custom QMK compilations")]
 #[command(version)]
 pub struct Args {
-    /// File where custom building steps to be applied are listed
     #[arg(default_value_t = String::from("build.json"))]
-    pub file: String,
+    pub file: String,          // File where custom building steps to be applied are listed
     #[arg(short, long)]
-    pub generate_schema: bool,
+    pub generate_schema: bool, // To generate the jsonschema
 }

@@ -183,6 +183,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "304e6508efa593091e97a9abbc10f90aa7ca635b6d2784feff3c89d41dd12272"
 
 [[package]]
+name = "enum_dispatch"
+version = "0.3.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f33313078bb8d4d05a2733a94ac4c2d8a0df9a2b84424ebf4f33bfc224a890e"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.28",
+]
+
+[[package]]
 name = "errno"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -318,6 +330,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "deser-hjson",
+ "enum_dispatch",
  "log",
  "schemars",
  "serde",

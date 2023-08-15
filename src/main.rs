@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write, process::exit};
+use std::process::exit;
 
 use clap::Parser;
 mod cli;
@@ -10,14 +10,14 @@ mod git;
 mod logging;
 use config::BuildFile;
 use git::Repository;
-use logging::{info, log, paris};
-use schemars::schema_for;
+use logging::{info, log, paris, error};
 
 mod operations;
+use operations::prelude::OperationTrait;
 
 mod sh;
 
-/// Pack together any information that operations might need
+// Pack together any information that operations might need
 pub struct BuildConfig {
     git_repo: Repository,
     build_file: BuildFile,
@@ -25,34 +25,42 @@ pub struct BuildConfig {
 
 impl BuildConfig {
     fn new() -> Self {
+        // Parse CLI args
         let cli_args = cli::Args::parse();
 
+        // User just wanted to create schema
         if cli_args.generate_schema {
-            let schema = schema_for!(BuildFile);
-            let schema_str = serde_json::to_string_pretty(&schema).unwrap();
-
-            let mut file = File::create("schema").unwrap();
-            let _ = file.write_all(schema_str.as_bytes());
-
-            info!("Schema generated");
-            exit(0)
+            BuildFile::generate_schema();
+            exit(0);
         }
 
         info!("Welcome to <blue>QMK build (alpha)</>");
 
-        let build_file = config::read_from(&cli_args.file);
-        let git_repo =
-            git::Repository::init(&build_file.path, &build_file.repo, &build_file.branch);
+        // (try) Load build configuration
+        let file = &cli_args.file;
+        let build_file = match BuildFile::load(file) {
+            Ok(config) => {
+                info!("Loaded <blue>{file}</>",);
+                config
+            }
+            Err(e) => {
+                error!(
+                    "Parsing config file (<blue>{file}</>)\n\t<red>{}</>",
+                    e.to_string()
+                );
+                exit(1);
+            }
+        };
+
+        let git_repo = git::Repository::init(
+            &build_file.path,
+            &build_file.repo,
+            &build_file.branch
+        );
 
         Self {
             git_repo,
             build_file,
-        }
-    }
-
-    pub fn setup(&self) {
-        for operation in &self.build_file.operations {
-            operation.apply(self);
         }
     }
 
@@ -81,25 +89,28 @@ impl BuildConfig {
         }
         info!("Copied into <blue>{binaries}</>");
     }
-
-    pub fn compile(&self) {
-        if self.build_file.default_compilation {
-            self.default_compilation();
-        }
-    }
 }
 
-/// Entrypoint for the app
+// Entrypoint for the app
 fn main() {
     logging::init();
 
-    // Setup everything based on CLI args + build file
+    // Parse CLI args
+    //   - Early exit after handling some flag
+    //   - Read build settings + configure git repo otherwise
     let config = BuildConfig::new();
 
-    config.setup();
+    // Apply changes listed on the file
+    for operation in &config.build_file.operations {
+        info!("{}", operation.message());
+        operation.apply(&config);
+    }
 
-    info!("Compiling");
-    config.compile();
+    // Compile (if asked)
+    if config.build_file.default_compilation {
+        info!("Compiling");
+        config.default_compilation();
+    }
 
     info!("<green>Finished</>");
     exit(0);

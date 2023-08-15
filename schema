@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BuildFile",
-  "description": "Struct to define the contents expected on JSON file",
   "type": "object",
   "required": [
     "branch",
@@ -12,12 +11,10 @@
       "type": "string"
     },
     "default_compilation": {
-      "description": "Either you want a default compilation command (qmk compile) or not (provide your own command/script at a step)",
       "default": true,
       "type": "boolean"
     },
     "keyboard": {
-      "description": "Let user set a fixed value, otherwise let `qmk` infer from config",
       "type": [
         "string",
         "null"
@@ -30,82 +27,23 @@
       ]
     },
     "operations": {
-      "description": "Set of changes to be performed",
       "type": "array",
       "items": {
         "$ref": "#/definitions/Operation"
       }
     },
     "path": {
-      "description": "Optional, where the copy of the fork will be stored, defaults to $HOME/.__qmk_build__",
       "default": "$HOME/.__qmk_build__",
       "type": "string"
     },
     "repo": {
-      "description": "Required, initial state of the repo",
       "type": "string"
     }
   },
   "definitions": {
     "Operation": {
-      "description": "Different patches to be applied to initial state of the repo",
       "oneOf": [
         {
-          "description": "Can be used on files or folders, copy whatever contents",
-          "type": "object",
-          "required": [
-            "dest",
-            "operation",
-            "orig"
-          ],
-          "properties": {
-            "description": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "dest": {
-              "type": "string"
-            },
-            "operation": {
-              "type": "string",
-              "enum": [
-                "cp"
-              ]
-            },
-            "orig": {
-              "type": "string"
-            }
-          }
-        },
-        {
-          "description": "Apply diff on a file",
-          "type": "object",
-          "required": [
-            "operation",
-            "patch"
-          ],
-          "properties": {
-            "description": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "operation": {
-              "type": "string",
-              "enum": [
-                "diff"
-              ]
-            },
-            "patch": {
-              "type": "string"
-            }
-          }
-        },
-        {
-          "description": "Grab files/folders from another branch (and repo?)",
           "type": "object",
           "required": [
             "branch",
@@ -116,12 +54,6 @@
           "properties": {
             "branch": {
               "type": "string"
-            },
-            "description": {
-              "type": [
-                "string",
-                "null"
-              ]
             },
             "files": {
               "type": "array",
@@ -141,7 +73,50 @@
           }
         },
         {
-          "description": "Execute a command",
+          "type": "object",
+          "required": [
+            "dest",
+            "operation",
+            "orig"
+          ],
+          "properties": {
+            "dest": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "cp"
+              ]
+            },
+            "orig": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "file",
+            "operation"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "folder": {
+              "default": "patches",
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "diff"
+              ]
+            }
+          }
+        },
+        {
           "type": "object",
           "required": [
             "command",
@@ -154,12 +129,6 @@
             },
             "command": {
               "type": "string"
-            },
-            "description": {
-              "type": [
-                "string",
-                "null"
-              ]
             },
             "operation": {
               "type": "string",
@@ -174,48 +143,44 @@
           }
         },
         {
-          "description": "Execute a file",
           "type": "object",
           "required": [
-            "file",
-            "operation"
+            "branch",
+            "operation",
+            "repo"
           ],
           "properties": {
-            "description": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "file": {
+            "branch": {
               "type": "string"
             },
             "operation": {
               "type": "string",
               "enum": [
-                "script"
+                "merge"
               ]
             },
-            "strict": {
-              "default": true,
-              "type": "boolean"
+            "repo": {
+              "type": "string"
+            },
+            "strategy": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Strategy"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },
         {
-          "description": "Grab diff from a PR",
           "type": "object",
           "required": [
             "id",
             "operation"
           ],
           "properties": {
-            "description": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
             "id": {
               "type": "integer",
               "format": "uint16",
@@ -234,7 +199,39 @@
               ]
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "file",
+            "operation"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "script"
+              ]
+            },
+            "strict": {
+              "default": true,
+              "type": "boolean"
+            }
+          }
         }
+      ]
+    },
+    "Strategy": {
+      "type": "string",
+      "enum": [
+        "octopus",
+        "ours",
+        "recursive",
+        "resolve",
+        "subtree"
       ]
     }
   }

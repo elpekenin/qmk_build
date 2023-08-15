@@ -4,7 +4,7 @@
             "fileMatch": [
                 "*build.json"
             ],
-            "url": "https://raw.githubusercontent.com/elpekenin/qmk_build/main/schema"
+            "url": "./schema"
         }
     ]
 }

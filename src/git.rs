@@ -6,6 +6,9 @@ use std::{
     process::{exit, Output},
 };
 
+use schemars::JsonSchema;
+use serde::Deserialize;
+
 use crate::{
     logging::{error, info, log, paris},
     sh,
@@ -14,6 +17,27 @@ use crate::{
 pub struct Repository {
     // foler where the repo is
     pub path: String,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Strategy {
+    Octopus,
+    Ours,
+    Recursive,
+    Resolve,
+    Subtree,
+}
+
+impl Default for Strategy {
+    fn default() -> Self {
+        Self::Recursive
+    }
+}
+impl ToString for Strategy {
+    fn to_string(&self) -> String {
+        format!("{self:?}").to_lowercase()
+    }
 }
 
 impl Repository {
@@ -127,7 +151,18 @@ impl Repository {
         let _ = self.run("git clean -dfx", true);
     }
 
-    pub fn merge_local_branch(&self, branch: &String) {
-        let _ = self.run(format!("git merge {branch}"), true);
+    pub fn merge(&self, repo: Option<&String>, branches: &[String], strategy: Option<Strategy>) {
+        let repo = match repo {
+            Some(repo) => format!("{}/", Repository::remote(repo)),
+            None => String::new(),
+        };
+
+        let branches = branches.join(" ");
+
+        let strategy = strategy.unwrap_or_default();
+        let strategy = format!(" -s {}", strategy.to_string());
+
+        let command = format!("git merge {repo}{branches}{strategy}");
+        let _ = self.run(command, true);
     }
 }
