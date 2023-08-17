@@ -140,7 +140,7 @@ impl Repository {
     }
 
     pub fn apply(&self, file: &String) {
-        let _ = self.run(format!("git apply {file}"), true);
+        let _ = self.run(format!("git apply --reject --whitespace=fix {file}"), true);
     }
 
     pub fn reset_hard(&self) {

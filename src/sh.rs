@@ -6,6 +6,10 @@ use std::{
 
 use crate::logging::{debug, error, log, paris};
 
+fn format_buf(buf: &[u8]) -> String {
+    String::from_utf8_lossy(buf).replace('\n', "\n    ")
+}
+
 // Run a command on the shell, at a given location, allowing it (or not) to fail
 pub fn run<S: AsRef<OsStr> + Clone + Display>(
     command: S,
@@ -37,12 +41,8 @@ pub fn run<S: AsRef<OsStr> + Clone + Display>(
     STDERR
     ------
     <red>{}</>"#,
-            String::from_utf8(output.stdout)
-                .unwrap()
-                .replace('\n', "\n\t"),
-            String::from_utf8(output.stderr)
-                .unwrap()
-                .replace('\n', "\n\t")
+            format_buf(&output.stdout),
+            format_buf(&output.stderr),
         );
         exit(1);
     }

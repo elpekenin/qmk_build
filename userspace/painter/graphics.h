@@ -4,6 +4,7 @@
 #pragma once
 
 #include "qp.h"
+#include "qp_internal.h"
 
 #include "generated_qp_resources.h"
 

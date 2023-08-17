@@ -3,7 +3,8 @@ USER_GENERATED = $(USER_PATH)/generated
 
 VPATH += $(USER_GENERATED)
 
-# clear previous stuff
+# make sure folder exists and is empty
+$(shell mkdir -p $(USER_GENERATED))
 $(shell rm -rf $(USER_GENERATED)/*)
 
 # enabled_features_t

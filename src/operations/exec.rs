@@ -1,5 +1,13 @@
 use super::prelude::*;
 
+pub fn default_strict() -> bool {
+    true
+}
+
+pub fn default_run_at() -> String {
+    ".".to_owned()
+}
+
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Exec {
     command: String, // command to execute

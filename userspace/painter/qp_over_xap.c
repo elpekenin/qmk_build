@@ -175,19 +175,6 @@ bool xap_respond_qp_pixdata(xap_token_t token, const uint8_t *data, size_t data_
     return true;
 }
 
-#if defined(QUANTUM_PAINTER_SURFACE_ENABLE)
-#    include "qp_surface.h"
-bool xap_respond_qp_surface_text(xap_token_t token, const uint8_t *data, size_t data_len) {
-    xap_route_user_quantum_painter_surface_text_arg_t  __arg;
-    xap_route_user_quantum_painter_surface_text_arg_t* arg = &__arg;
-    xap_respond_success(token);
-
-    qp_surface_text(DEVICE, arg->x, arg->y, FONT, (const char *)arg->text);
-
-    return true;
-}
-#endif // QUANTUM_PAINTER_SURFACE_ENABLE
-
 bool xap_respond_qp_textwidth(xap_token_t token, const uint8_t *data, size_t data_len) {
     xap_route_user_quantum_painter_textwidth_arg_t  __arg;
     xap_route_user_quantum_painter_textwidth_arg_t* arg = &__arg;

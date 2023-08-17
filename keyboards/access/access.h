@@ -9,6 +9,7 @@
 #    include "sipo_pins.h"
 
 #    if defined(INIT_EE_HANDS_LEFT)
+#        include "qp_eink_panel.h"
 extern painter_device_t il91874;
 #    else
 extern painter_device_t ili9163;

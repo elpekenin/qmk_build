@@ -199,28 +199,6 @@
               ]
             }
           }
-        },
-        {
-          "type": "object",
-          "required": [
-            "file",
-            "operation"
-          ],
-          "properties": {
-            "file": {
-              "type": "string"
-            },
-            "operation": {
-              "type": "string",
-              "enum": [
-                "script"
-              ]
-            },
-            "strict": {
-              "default": true,
-              "type": "boolean"
-            }
-          }
         }
       ]
     },

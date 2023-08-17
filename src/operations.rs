@@ -9,14 +9,6 @@ pub mod prelude {
     pub use schemars::JsonSchema;
     pub use serde::Deserialize;
 
-    pub fn default_strict() -> bool {
-        true
-    }
-
-    pub fn default_run_at() -> String {
-        ".".to_owned()
-    }
-
     // common behaviour on all operations
     #[enum_dispatch]
     pub trait OperationTrait {
@@ -33,7 +25,6 @@ mod diff;
 mod exec;
 mod merge;
 mod pr;
-mod script;
 
 use checkout::Checkout;
 use copy::Copy;
@@ -41,7 +32,6 @@ use diff::Diff;
 use exec::Exec;
 use merge::Merge;
 use pr::PullRequest;
-use script::Script;
 
 
 #[enum_dispatch(OperationTrait)]
@@ -52,8 +42,7 @@ pub enum Operation {
     Checkout(Checkout), // Grab files/folders from another branch (and repo?)
     Cp(Copy),           // Copy files/folders
     Diff(Diff),         // Apply diff file
-    Exec(Exec),         // Run a command
+    Exec(Exec),         // Run a command/script
     Merge(Merge),       // Merge a branch
     Pr(PullRequest),    // Grab PR changes
-    Script(Script),     // Run a file
 }

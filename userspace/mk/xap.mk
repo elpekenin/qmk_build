@@ -1,4 +1,6 @@
 ifeq ($(strip $(XAP_ENABLE)), yes)
+    DYNAMIC_KEYMAP_ENABLE = no
+
     SRC += user_xap.c
 
     QP_XAP ?= yes

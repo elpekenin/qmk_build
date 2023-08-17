@@ -566,41 +566,7 @@
                     ]
                     return_execute: qp_pixdata
                 }
-                0x11: {
-                    enable_if_preprocessor: defined(QUANTUM_PAINTER_SURFACE_ENABLE)
-                    type: command
-                    name: surface_text
-                    define: SURFACE_TEXT
-                    description: Expose `qp_surface_text`
-                    request_struct_length: 58
-                    request_struct_members: [
-                        {
-                            type: u8
-                            name: device_id
-                        }
-                        {
-                            type: u16
-                            name: x
-                        }
-                        {
-                            type: u16
-                            name: y
-                        }
-                        {
-                            type: u8
-                            name: font_id
-                        }
-                        {
-                            type: u8[51]
-                            name: text
-                        }
-                        {
-                            type: u8
-                            name: dummy_for_terminator
-                        }
-                    ]
-                    return_execute: qp_surface_text
-                }
+                /* 0x11 was removed */
                 0x12: {
                     type: command
                     name: textwidth
