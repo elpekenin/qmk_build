@@ -70,7 +70,6 @@
 #define RGB_DISABLE_WHEN_USB_SUSPENDED
 #define RGB_MATRIX_LED_COUNT 58
 #define RGB_MATRIX_SPLIT {29, 29}
-#define WS2812_PIO_USE_PIO1
 
 // =======
 // Split

@@ -1,5 +1,4 @@
 {
-    // WIP
     "repo": "https://github.com/qmk/qmk_firmware",
     "branch": "xap",
     "keyboard": "elpekenin/access",
@@ -58,6 +57,11 @@
         {
             "operation": "diff",
             "file": "generic_rotation.diff"
+        },
+        {
+            // #20645(ish)
+            "operation": "diff",
+            "file": "native_color_font.diff"
         },
         {
             "operation": "exec",
