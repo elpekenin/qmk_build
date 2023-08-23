@@ -17,42 +17,53 @@ painter_image_handle_t qp_images[QUANTUM_PAINTER_NUM_IMAGES] = {};
 
 // =======
 // Load resources
+static uint8_t display_counter = 0;
 void _load_display(painter_device_t display) {
-    static uint8_t i = 0;
-
-    if (i >= QUANTUM_PAINTER_NUM_DISPLAYS) {
+    if (display_counter >= QUANTUM_PAINTER_NUM_DISPLAYS) {
         qp_dprintf("' failed, out of bounds defined by QUANTUM_PAINTER_NUM_DISPLAYS\n");
         return;
     }
 
-    qp_dprintf("' at position [%d]\n", i);
-    qp_devices_pekenin[i++] = display;
+    qp_dprintf("' at position [%d]\n", display_counter);
+    qp_devices_pekenin[display_counter++] = display;
 }
 
+static uint8_t font_counter = 0;
 void _load_font(const uint8_t *font) {
-    static uint8_t i = 0;
-
-    if (i >= QUANTUM_PAINTER_NUM_FONTS) {
+    if (font_counter >= QUANTUM_PAINTER_NUM_FONTS) {
         qp_dprintf("' failed, out of bounds defined by QUANTUM_PAINTER_NUM_FONTS\n");
         return;
     }
 
-    qp_dprintf("' at position [%d]\n", i);
+    qp_dprintf("' at position [%d]\n", font_counter);
     painter_font_handle_t dummy = qp_load_font_mem(font);
-    qp_fonts[i++] = dummy;
+    qp_fonts[font_counter++] = dummy;
 }
 
+static uint8_t img_counter;
 void _load_image(const uint8_t *img) {
-    static uint8_t i = 0;
-
-    if (i >= QUANTUM_PAINTER_NUM_IMAGES) {
+    if (img_counter >= QUANTUM_PAINTER_NUM_IMAGES) {
         qp_dprintf("' failed, out of bounds defined by QUANTUM_PAINTER_NUM_IMAGES\n");
         return;
     }
 
-    qp_dprintf("' at position [%d]\n", i);
+    qp_dprintf("' at position [%d]\n", img_counter);
     painter_image_handle_t dummy = qp_load_image_mem(img);
-    qp_images[i++] = dummy;
+    qp_images[img_counter++] = dummy;
+}
+
+// ===========
+// # of assets
+uint8_t num_displays(void) {
+    return display_counter;
+}
+
+uint8_t num_fonts(void) {
+    return font_counter;
+}
+
+uint8_t num_imgs(void) {
+    return img_counter;
 }
 
 // =======

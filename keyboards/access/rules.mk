@@ -8,7 +8,7 @@ else ifeq ($(strip $(MAKECMDGOALS)), uf2-split-right)
 endif
 
 RGB_MATRIX_CUSTOM_KB = yes
-RGB_MATRIX_DRIVER = WS2812
+RGB_MATRIX_DRIVER = ws2812
 
 SERIAL_DRIVER = vendor
 

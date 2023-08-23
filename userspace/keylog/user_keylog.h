@@ -15,7 +15,6 @@ extern char keylog[KEYLOG_SIZE + 1];
 
 extern bool qp_log_redraw;
 
-void populate_keycode_names(void);
 char *get_keycode_str_at(uint8_t layer_num, uint8_t row, uint8_t column);
 
 bool index_to_row_col(uint8_t index, uint8_t *row, uint8_t *col);

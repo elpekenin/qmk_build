@@ -17,23 +17,23 @@
 #if defined(QUANTUM_PAINTER_ENABLE)
 #    include "graphics.h"
 #    include "qp_logging.h"
-#else
-#    define load_qp_resources()
-#    define qp_housekeeping(now)
 #endif // defined(QUANTUM_PAINTER_ENABLE)
 
 #if defined(SPLIT_KEYBOARD)
 #    include "user_transactions.h"
-#else
-#    define split_sync_housekeeping(now)
-#    define transactions_init()
 #endif // defined(SPLIT_KEYBOARD)
 
 
 void housekeeping_task_user(void) {
-    uint32_t now  = timer_read32();
+    __attribute__((unused)) uint32_t now  = timer_read32();
+
+#if defined(QUANTUM_PAINTER_ENABLE)
     qp_housekeeping(now);
+#endif // defined(QUANTUM_PAINTER_ENABLE)
+
+#if defined(SPLIT_KEYBOARD)
     split_sync_housekeeping(now);
+#endif // defined(SPLIT_KEYBOARD)
 
     housekeeping_task_keymap();
 }
@@ -52,20 +52,28 @@ void keyboard_post_init_user(void) {
     autocorrect_enable();
 #endif // defined(AUTOCORRECT_ENABLE)
 
-    populate_keycode_names();
-
+#if defined(QUANTUM_PAINTER_ENABLE)
     load_qp_resources();
+#endif // defined(QUANTUM_PAINTER_ENABLE)
 
+#if defined(SPLIT_KEYBOARD)
     transactions_init();
     // has to be after transactions_init, because it memset's user_data to 0
     if (is_keyboard_master()) {
+#endif // defined(SPLIT_KEYBOARD)
+
         user_data = (user_data_t) {
             .commit   = QMK_GIT_HASH,
             .features = get_enabled_features(),
         };
-    }
 
+#if defined(SPLIT_KEYBOARD)
+    }
+#endif // defined(SPLIT_KEYBOARD)
+
+#if defined(TRI_LAYER_ENABLE)
     configure_tri_layer();
+#endif // defined(TRI_LAYER_ENABLE)
 
     keyboard_post_init_keymap();
 }

@@ -33,6 +33,8 @@ char *keycode_names_raw[] = {
 #include KEYMAP_LAYERS_H
 };
 
+// not public, will get called upon asking for keycodes
+// thus not taking any RAM if code didnt ask for the strings
 void populate_keycode_names(void) {
     // we only want to do this once
     static bool inited = false;

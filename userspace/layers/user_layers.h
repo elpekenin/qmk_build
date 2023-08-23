@@ -13,6 +13,4 @@ enum layers {
 
 #if defined(TRI_LAYER_ENABLE)
 void configure_tri_layer(void);
-#else
-#    define configure_tri_layer()
 #endif // defined(TRI_LAYER_ENABLE)
