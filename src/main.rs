@@ -28,12 +28,6 @@ impl BuildConfig {
         // Parse CLI args
         let cli_args = cli::Args::parse();
 
-        // User just wanted to create schema
-        if cli_args.generate_schema {
-            BuildFile::generate_schema();
-            exit(0);
-        }
-
         info!("Welcome to <blue>QMK build (alpha)</>");
 
         // (try) Load build configuration

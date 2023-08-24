@@ -22,7 +22,7 @@ repos:
       # Keep schema always up to date
       - id: schema
         name: Generate jsonschema
-        entry: qmk_build --generate-schema
+        entry: cargo test
         pass_filenames: false
         language: system
         types: [rust]

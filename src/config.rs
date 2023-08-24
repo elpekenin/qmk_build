@@ -2,17 +2,14 @@ use std::{
     error::Error,
     fmt::{Debug, Display},
     fs::File,
-    io::{BufReader, Write},
+    io::BufReader,
     path::Path,
 };
 
-use schemars::{JsonSchema, schema_for};
+use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::{
-    logging::{info, log, paris},
-    operations::Operation,
-};
+use crate::operations::Operation;
 
 fn default_path() -> String {
     String::from("$HOME/.__qmk_build__")
@@ -52,7 +49,25 @@ pub struct BuildFile {
 }
 
 impl BuildFile {
-    pub fn generate_schema() {
+    pub fn load<P: AsRef<Path> + Display>(path: &P) -> Result<Self, Box<dyn Error>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+    
+        let config = deser_hjson::from_reader(reader)?;
+        Ok(config)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::File, io::Write};
+
+    use schemars::schema_for;
+
+    use crate::{logging::{info, log, paris}, config::BuildFile};
+
+    #[test]
+    fn schema() {
         let schema = schema_for!(BuildFile);
         let schema_str = serde_json::to_string_pretty(&schema).unwrap();
 
@@ -60,13 +75,5 @@ impl BuildFile {
         let _ = file.write_all(schema_str.as_bytes());
 
         info!("Schema generated");
-    }
-
-    pub fn load<P: AsRef<Path> + Display>(path: &P) -> Result<Self, Box<dyn Error>> {
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-    
-        let config = deser_hjson::from_reader(reader)?;
-        Ok(config)
     }
 }

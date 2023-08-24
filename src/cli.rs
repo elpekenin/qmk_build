@@ -10,7 +10,5 @@ These changes are defined in a json file, with actions like copying local files,
 #[command(version)]
 pub struct Args {
     #[arg(default_value_t = String::from("build.json"))]
-    pub file: String,          // File where custom building steps to be applied are listed
-    #[arg(short, long)]
-    pub generate_schema: bool, // To generate the jsonschema
+    pub file: String, // File where custom building steps to be applied are listed
 }
