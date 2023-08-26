@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Usage: $ png2qgf <format>
+
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+INPUT_PATH=$SCRIPT_PATH
+OUTPUT_PATH=.. # relative to input path
+TARGET_FMT=$1
+
+# From <https://unix.stackexchange.com/questions/103920/parallelize-a-bash-for-loop>
+
+# Number of concurrent tasks. Beware, a big one could crash your computer
+N=32
+(
+cd $SCRIPTPATH || exit
+for file in ./*.png; do
+   ((i=i%N)); ((i++==0)) && wait
+   qmk painter-convert-graphics -f $TARGET_FMT -i $file -o $OUTPUT_PATH > /dev/null &
+done
+)

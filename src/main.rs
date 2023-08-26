@@ -58,6 +58,19 @@ impl BuildConfig {
         }
     }
 
+    fn copy_binaries(&self) {
+        let binaries = "binaries/";
+        let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
+        for ext in ["bin", "hex", "uf2"] {
+            let _ = sh::run(
+                format!("cp {}/*.{ext} {binaries}", self.git_repo.path),
+                ".",
+                false,
+            );
+        }
+        info!("Copied into <blue>{binaries}</>");
+    }
+
     fn default_compilation(&self) {
         let mut command = String::from("qmk compile");
 
@@ -71,17 +84,6 @@ impl BuildConfig {
 
         let _ = self.git_repo.run("qmk clean -a", true);
         let _ = self.git_repo.run(command, true);
-
-        let binaries = "binaries/";
-        let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
-        for ext in ["bin", "hex", "uf2"] {
-            let _ = sh::run(
-                format!("cp {}/*.{ext} {binaries}", self.git_repo.path),
-                ".",
-                false,
-            );
-        }
-        info!("Copied into <blue>{binaries}</>");
     }
 }
 
@@ -105,6 +107,8 @@ fn main() {
         info!("Compiling");
         config.default_compilation();
     }
+
+    config.copy_binaries();
 
     info!("<green>Finished</>");
     exit(0);

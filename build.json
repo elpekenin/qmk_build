@@ -67,10 +67,6 @@
             "operation": "exec",
             "command": "keyboards/elpekenin/access/compile",
             "at": "$HOME/.__qmk_build__"
-        },
-        {
-            "operation": "exec",
-            "command": "cp $HOME/.__qmk_build__/*uf2 binaries/"
         }
     ]
 }

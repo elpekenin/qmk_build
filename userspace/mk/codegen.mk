@@ -14,6 +14,11 @@ SRC += generated_features.c \
 
 # QP assets
 ifeq ($(strip $(QUANTUM_PAINTER_ENABLE)), yes)
+    # not really codegen, but let's convert .png to .qgf here
+    QGF_FORMAT ?= rgb565
+    $(shell $(USER_PATH)/painter/images/png/png2qgf $(QGF_FORMAT))
+
+    # actual codegen
     QP_DIRS := $(KEYBOARD_PATHS) $(KEYMAP_PATH) $(USER_PATH)
     $(shell $(USER_SCRIPTS)/qp_resources.py $(USER_GENERATED) $(QP_DIRS))
     SRC += generated_qp_resources.c
