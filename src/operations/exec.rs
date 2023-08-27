@@ -1,11 +1,11 @@
 use super::prelude::*;
 
-pub fn default_strict() -> bool {
+const fn default_strict() -> bool {
     true
 }
 
-pub fn default_run_at() -> String {
-    ".".to_owned()
+fn default_run_at() -> String {
+    String::from(".")
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema)]

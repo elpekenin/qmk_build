@@ -5,7 +5,7 @@
 
 #pragma once
 
-#define modifiers() (get_mods() | get_weak_mods() | get_oneshot_mods())
+#define MODIFIERS() (get_mods() | get_weak_mods() | get_oneshot_mods())
 
 #define u16_TO_u8(x) ((x) & 0xFF), ((x) >> 8)
 

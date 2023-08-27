@@ -26,3 +26,9 @@ ifeq ($(strip $(SIPO_PINS)), yes)
         SRC += qp_comms_sipo.c
     endif
 endif
+
+KEYLOG_ENABLE ?= no
+ifeq ($(strip $(KEYLOG_ENABLE)), yes)
+    OPT_DEFS += -DKEYLOG_ENABLE
+    SRC += user_keylog.c
+endif

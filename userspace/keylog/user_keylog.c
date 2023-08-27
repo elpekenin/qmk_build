@@ -20,7 +20,7 @@ enum {
 // *** Internal variables ***
 // ==========================
 char *keycode_names[__N_LAYERS][MATRIX_ROWS][MATRIX_COLS];
-char keylog[KEYLOG_SIZE + 1]; // extra spaced for terminator
+char keylog[KEYLOG_SIZE + 1]; // extra space for terminator
 
 // =========================
 // *** row/col -> string ***
@@ -250,7 +250,7 @@ void replace_mods(char **str) {
     };
 
 
-    uint8_t mods = modifiers();
+    uint8_t mods = MODIFIERS();
     for (uint8_t i = 0; i < ARRAY_SIZE(replacements); ++i) {
         mod_replacement_t replacement = replacements[i];
         uint8_t           mask        = replacement.mod_mask;
@@ -283,7 +283,7 @@ void apply_casing(char **str) {
         return;
     }
 
-    uint8_t mods  = modifiers();
+    uint8_t mods  = MODIFIERS();
     bool    shift = mods & MOD_MASK_SHIFT;
     bool    caps  = host_keyboard_led_state().caps_lock;
 
@@ -389,7 +389,7 @@ void keylog_process(uint16_t keycode, keyrecord_t *record) {
     uint8_t column    = record->event.key.col;
     char *  str       = get_keycode_str_at(layer_num, row, column);
 
-    uint8_t mods = modifiers();
+    uint8_t mods = MODIFIERS();
     bool    ctrl = mods & MOD_MASK_CTRL;
 
     // delete from tail

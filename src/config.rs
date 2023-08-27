@@ -15,11 +15,11 @@ fn default_path() -> String {
     String::from("$HOME/.__qmk_build__")
 }
 
-fn default_operations() -> Vec<Operation> {
+const fn default_operations() -> Vec<Operation> {
     Vec::new()
 }
 
-fn _true() -> bool {
+const fn _true() -> bool {
     true
 }
 
@@ -69,8 +69,11 @@ mod tests {
     #[test]
     fn schema() {
         let schema = schema_for!(BuildFile);
+
+        #[allow(clippy::unwrap_used)]
         let schema_str = serde_json::to_string_pretty(&schema).unwrap();
 
+        #[allow(clippy::unwrap_used)]
         let mut file = File::create("schema").unwrap();
         let _ = file.write_all(schema_str.as_bytes());
 

@@ -7,7 +7,6 @@
 
 #include "elpekenin.h"
 #include "user_data.h"
-#include "user_keylog.h"
 #include "placeholders.h"
 
 // My generated files
@@ -22,6 +21,10 @@
 #if defined(SPLIT_KEYBOARD)
 #    include "user_transactions.h"
 #endif // defined(SPLIT_KEYBOARD)
+
+#if defined(KEYLOG_ENABLE)
+#    include "user_keylog.h"
+#endif // defined (KEYLOG_ENABLE)
 
 
 void housekeeping_task_user(void) {

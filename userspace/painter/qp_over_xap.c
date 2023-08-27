@@ -8,7 +8,6 @@
 #include "xap.h"
 
 #include "graphics.h"
-#include "user_keylog.h"
 #include "user_utils.h"
 
 #define DEVICE (qp_devices_pekenin[arg->device_id])
@@ -220,14 +219,3 @@ bool xap_respond_extend_scrolling_text(xap_token_t token, const uint8_t *data, s
     return true;
 }
 
-bool xap_execute_draw_keycode(xap_token_t token, xap_route_user_quantum_painter_draw_keycode_arg_t* arg) {
-    xap_respond_success(token);
-
-    char *str = get_keycode_str_at(arg->layer, arg->row, arg->col);
-
-    keycode_repr(&str);
-
-    qp_drawtext(DEVICE, arg->x, arg->y, FONT, str);
-
-    return true;
-}

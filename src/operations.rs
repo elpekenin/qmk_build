@@ -1,6 +1,6 @@
 pub mod prelude {
     #[allow(unused_imports)]
-    pub(crate) use crate::{
+    pub use crate::{
         logging::{info, log, paris},
         sh, BuildConfig,
     };

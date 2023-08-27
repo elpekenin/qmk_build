@@ -8,8 +8,12 @@
 #include "graphics.h"
 #include "qp_logging.h"
 #include "user_data.h"
-#include "user_keylog.h"
 #include "user_utils.h"
+
+#if defined(KEYLOG_ENABLE)
+#    include "user_keylog.h"
+#endif // defined(KEYLOG_ENABLE)
+
 
 painter_device_t qp_devices_pekenin[QUANTUM_PAINTER_NUM_DISPLAYS] = {}; // Has to be filled by the user
 painter_font_handle_t qp_fonts[QUANTUM_PAINTER_NUM_FONTS] = {};
@@ -284,6 +288,8 @@ void qp_housekeeping(uint32_t now) {
     uint8_t               n_chars = 18;
     uint32_t              delay   = 500;
 
+    /* Key logger */
+#if defined(KEYLOG_ENABLE)
     int16_t textwidth = qp_textwidth(font, keylog);
     qp_rect(device, 0, height - font->line_height, width - textwidth, height, HSV_BLACK, true);
 
@@ -305,7 +311,9 @@ void qp_housekeeping(uint32_t now) {
     #endif // defined(WPM_ENABLE)
 
     qp_drawtext_recolor(device, width - textwidth, height - font->line_height, font, keylog, color.h, color.s, color.v, HSV_BLACK);
+#endif // defined(KEYLOG_ENABLE)
 
+    /* QP Logging */
     // re-draw on changes and dont draw at boot, messes up USB detection
     if (qp_log_redraw && now > 3000) {
        qp_log_redraw = false;
@@ -338,7 +346,7 @@ void qp_housekeeping(uint32_t now) {
        }
     }
 
-    // Draw uptime and keylog
+    /* Uptime */
     static uint32_t prev_uptime = 0;
     if (TIMER_DIFF_32(now, prev_uptime) > 1000) {
         prev_uptime = now;

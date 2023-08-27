@@ -3,12 +3,13 @@
     "branch": "xap",
     "keyboard": "elpekenin/access",
     "keymap": "elpekenin",
+    "path": "$QMK_BUILD",
     "default_compilation": false,
     "operations": [
         {
             "operation": "exec",
             "command": "mkdir -p keyboards/elpekenin",
-            "at": "$HOME/.__qmk_build__"
+            "at": "$QMK_BUILD"
         },
         {
             "operation": "cp",
@@ -52,10 +53,6 @@
         },
         {
             "operation": "diff",
-            "file": "xap_dynamic_keymap.diff"
-        },
-        {
-            "operation": "diff",
             "file": "generic_rotation.diff"
         },
         {
@@ -64,9 +61,13 @@
             "file": "native_color_font.diff"
         },
         {
+            "operation": "diff",
+            "file": "xap_keytester.diff"
+        },
+        {
             "operation": "exec",
             "command": "keyboards/elpekenin/access/compile",
-            "at": "$HOME/.__qmk_build__"
+            "at": "$QMK_BUILD"
         }
     ]
 }

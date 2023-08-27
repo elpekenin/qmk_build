@@ -18,6 +18,7 @@ pub fn init() {
         _ => LevelFilter::Info,
     };
 
+    #[allow(clippy::unwrap_used)]
     CombinedLogger::init(
         vec![
             TermLogger::new(

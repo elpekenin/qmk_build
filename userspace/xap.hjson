@@ -667,44 +667,6 @@
                     ]
                     return_execute: extend_scrolling_text
                 }
-                0x16: {
-                    type: command
-                    name: draw_keycode
-                    define: DRAW_KEYCODE
-                    description: Draw a keycode's name
-                    request_struct_length: 9
-                    request_struct_members: [
-                        {
-                            type: u8
-                            name: device_id
-                        }
-                        {
-                            type: u16
-                            name: x
-                        }
-                        {
-                            type: u16
-                            name: y
-                        }
-                        {
-                            type: u8
-                            name: font_id
-                        }
-                        {
-                            type: u8
-                            name: layer
-                        }
-                        {
-                            type: u8
-                            name: row
-                        }
-                        {
-                            type: u8
-                            name: col
-                        }
-                    ]
-                    return_execute: draw_keycode
-                }
             }
         }
     }

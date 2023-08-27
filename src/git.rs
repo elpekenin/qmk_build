@@ -105,7 +105,7 @@ impl Repository {
         let output = self.run(format!("git remote add {remote} {repo}"), false);
 
         if output.status.code() != Some(0) {
-            let stderr = String::from_utf8(output.stderr).unwrap();
+            let stderr = String::from_utf8(output.stderr).unwrap_or_default();
             if !stderr.contains("already exists") {
                 error!("Adding remote failed with\n\t<red>{stderr}</>");
                 exit(1);
@@ -152,10 +152,10 @@ impl Repository {
     }
 
     pub fn merge(&self, repo: Option<&String>, branches: &[String], strategy: Option<Strategy>) {
-        let repo = match repo {
-            Some(repo) => format!("{}/", Repository::remote(repo)),
-            None => String::new(),
-        };
+        let repo = repo.map_or_else(
+            String::new,
+            |repo| format!("{}/", Self::remote(repo))
+        );
 
         let branches = branches.join(" ");
 

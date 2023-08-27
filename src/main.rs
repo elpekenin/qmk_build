@@ -15,7 +15,7 @@ use logging::{info, log, paris, error};
 mod operations;
 use operations::prelude::OperationTrait;
 
-mod sh;
+pub mod sh;
 
 // Pack together any information that operations might need
 pub struct BuildConfig {
@@ -28,7 +28,7 @@ impl BuildConfig {
         // Parse CLI args
         let cli_args = cli::Args::parse();
 
-        info!("Welcome to <blue>QMK build (alpha)</>");
+        info!("Welcome to <blue>QMK build (beta)</>");
 
         // (try) Load build configuration
         let file = &cli_args.file;
@@ -59,8 +59,12 @@ impl BuildConfig {
     }
 
     fn copy_binaries(&self) {
+        // create (if needed) and clear the output directory
         let binaries = "binaries/";
         let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
+        let _ = sh::run(format!("rm {binaries}/*"), ".", true);
+
+        // copy firmwares into output dir
         for ext in ["bin", "hex", "uf2"] {
             let _ = sh::run(
                 format!("cp {}/*.{ext} {binaries}", self.git_repo.path),
@@ -68,6 +72,7 @@ impl BuildConfig {
                 false,
             );
         }
+
         info!("Copied into <blue>{binaries}</>");
     }
 

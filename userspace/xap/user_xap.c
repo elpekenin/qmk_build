@@ -2,6 +2,11 @@
 #include "user_utils.h"
 #include "user_xap.h"
 
+// for keycode as str
+#if defined(KEYLOG_ENABLE)
+#    include "user_keylog.h"
+#endif // defined(KEYLOG_ENABLE)
+
 void xap_screen_pressed(uint8_t screen_id, touch_report_t report) {
     screen_pressed_msg_t msg = {
         .msg_id = _SCREEN_PRESSED,
@@ -39,9 +44,12 @@ void xap_keyevent(uint16_t keycode, keyrecord_t *record) {
         .base.layer = get_highest_layer(layer_state),
         .base.row = record->event.key.row,
         .base.col = record->event.key.col,
-        .base.mods = modifiers()
+        .base.mods = MODIFIERS()
     };
+
+#if defined(KEYLOG_ENABLE)
     strcpy(msg.str, get_keycode_str_at(msg.base.layer, msg.base.row, msg.base.col));
+#endif // defined(KEYLOG_ENABLE)
 
     xap_broadcast_user(&msg, sizeof(msg));
 }

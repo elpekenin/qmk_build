@@ -40,11 +40,16 @@ const key_override_t **key_overrides = (const key_override_t *[]){
 };
 #endif // defined(KEY_OVERRIDE_ENABLE)
 
+#if defined(KEYLOG_ENABLE)
 bool keylog_enabled = true;
+#endif // defined(KEYLOG_ENABLE)
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+#if defined(KEYLOG_ENABLE)
     if (keylog_enabled) {
         keylog_process(keycode, record);
     }
+#endif // defined(KEYLOG_ENABLE)
 
     #if defined(XAP_ENABLE)
         xap_keyevent(keycode, record);
@@ -95,13 +100,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
             }
             return false;
+    #endif // defined(QUANTUM_PAINTER_ENABLE)
 
+    #if defined(KEYLOG_ENABLE)
         case PK_KLOG:
             if (pressed) {
                 keylog_enabled = !keylog_enabled;
             }
             return false;
-    #endif // defined(QUANTUM_PAINTER_ENABLE)
+    #endif // defined(KEYLOG_ENABLE)
 
     #if defined(UCIS_ENABLE)
         case PK_UCIS:
