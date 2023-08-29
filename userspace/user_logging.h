@@ -3,6 +3,6 @@
 
 #pragma once
 
-void user_data_sync_keymap_callback(void);
-void housekeeping_split_sync(uint32_t now);
-void transactions_init(void);
+#include <stdint.h>
+
+int8_t _sendchar(uint8_t c);

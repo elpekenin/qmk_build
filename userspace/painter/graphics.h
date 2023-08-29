@@ -60,4 +60,4 @@ void draw_layer(uint8_t layer_num);
 
 // Target device
 extern painter_device_t qp_log_target_device;
-void qp_housekeeping(uint32_t now);
+void housekeeping_qp(uint32_t now);

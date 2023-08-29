@@ -34,7 +34,12 @@ bool rgb_matrix_indicators_user(void) {
                         break;
 
                     case DB_TOGG:
-                        rgb_matrix_set_color(index, 40, 40, 40);
+                        rgb_matrix_set_color(
+                            index,
+                            RGB_MATRIX_MAXIMUM_BRIGHTNESS,
+                            RGB_MATRIX_MAXIMUM_BRIGHTNESS,
+                            RGB_MATRIX_MAXIMUM_BRIGHTNESS
+                        );
                         break;
 
                     default:

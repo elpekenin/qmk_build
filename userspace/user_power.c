@@ -27,9 +27,12 @@ bool shutdown_user(bool jump_to_bootloader) {
         // red for reboot
         rgb_matrix_set_color_all(RGB_MATRIX_MAXIMUM_BRIGHTNESS, 0, 0);
     }
+
     // force flushing -- otherwise will never happen
     void rgb_matrix_update_pwm_buffers(void);
     rgb_matrix_update_pwm_buffers();
+
+    wait_ms(150);
 #endif // RGB_MATRIX_ENABLE
 
 #if defined(QP_XAP_ENABLE)

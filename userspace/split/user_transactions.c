@@ -17,7 +17,7 @@ void user_data_sync_slave(uint8_t m2s_size, const void* m2s_buffer, uint8_t s2m_
     }
 }
 
-void split_sync_housekeeping(uint32_t now) {
+void housekeeping_split_sync(uint32_t now) {
     static uint32_t sync_timer = 0;
     if (is_keyboard_master() && TIMER_DIFF_32(now, sync_timer) > 30000) {
         sync_timer = now;

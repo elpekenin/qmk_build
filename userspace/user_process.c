@@ -96,7 +96,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case PK_QCLR:
             if (pressed) {
                 for (uint8_t i = 0; i < LOG_N_LINES; ++i) {
-                    elpekenin_sendchar_hook('\n');
+                    sendchar_qp_hook('\n');
                 }
             }
             return false;

@@ -16,6 +16,7 @@ VPATH += $(USER_PATH)/autocorrect \
 SRC += elpekenin.c \
        placeholders.c \
        user_layers.c \
+       user_logging.c \
        user_power.c \
        user_process.c
 

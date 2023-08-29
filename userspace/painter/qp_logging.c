@@ -1,18 +1,17 @@
 // Copyright 2023 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <string.h>
-
 #include "qp_logging.h"
+#include "graphics.h"
 
-char                 *qp_log_pointers[LOG_N_LINES];
-deferred_token        qp_log_tokens[LOG_N_LINES];
-bool                  qp_log_redraw;
+static char                 *qp_log_pointers[LOG_N_LINES];
+static deferred_token        qp_log_tokens[LOG_N_LINES];
+static bool                  qp_log_redraw;
 
 static char           qp_log[LOG_N_LINES][LOG_N_CHARS + 1];
 static uint8_t        qp_log_current_col;
 
-bool elpekenin_sendchar_hook(uint8_t c) {
+void sendchar_qp_hook(uint8_t c) {
     // Setup the arrays on the 1st go
     static bool initialized = false;
     if (!initialized) {
@@ -41,21 +40,44 @@ bool elpekenin_sendchar_hook(uint8_t c) {
         qp_log_pointers[LOG_N_LINES - 1][qp_log_current_col] = 0;
         qp_log_redraw                                        = true;
     } else if (qp_log_current_col >= LOG_N_CHARS) {
-        return false;
+        return;
     } else {
         qp_log_pointers[LOG_N_LINES - 1][qp_log_current_col++] = c;
         qp_log_pointers[LOG_N_LINES - 1][qp_log_current_col]   = 0;
         qp_log_redraw                                          = true;
     }
-
-    return true;
 }
 
-int8_t elpekenin_sendchar(uint8_t c) {
-    // logging on QP
-    elpekenin_sendchar_hook(c);
+void qp_logging_render(qp_logging_render_args_t args) {
+    if (!qp_log_redraw || !args.device) {
+        return;
+    }
 
-    // default logging (USB)
-    extern int8_t sendchar(uint8_t c);
-    return sendchar(c);
+    qp_log_redraw = false;
+
+    // Clear space
+    qp_rect(args.device, args.x, args.y, args.screen_w, args.y + LOG_N_LINES * args.font->line_height, HSV_BLACK, true);
+
+    for (uint8_t i = 0; i < LOG_N_LINES; ++i) {
+        bool text_fits = qp_textwidth(args.font, (const char *)qp_log_pointers[i]) < (args.screen_w - args.x);
+
+        uint16_t y = args.y + i * args.font->line_height;
+
+        stop_scrolling_text(qp_log_tokens[i]);
+        qp_log_tokens[i] = 0;
+
+        if (text_fits) {
+            qp_drawtext(args.device, args.x, y, args.font, (const char *)qp_log_pointers[i]);
+        } else {
+            qp_log_tokens[i] = draw_scrolling_text(
+                args.device,
+                args.x,
+                y,
+                args.font,
+                (const char *)qp_log_pointers[i],
+                args.n_chars,
+                args.delay
+            );
+        }
+    }
 }

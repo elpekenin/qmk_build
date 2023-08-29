@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "qp.h"
+
 #include "deferred_exec.h"
 
 #if !defined(LOG_N_LINES)
@@ -16,9 +18,15 @@
 #undef QUANTUM_PAINTER_CONCURRENT_SCROLLING_TEXTS
 #define QUANTUM_PAINTER_CONCURRENT_SCROLLING_TEXTS (LOG_N_LINES + 5)
 
-extern deferred_token   qp_log_tokens[LOG_N_LINES];
-extern char            *qp_log_pointers[LOG_N_LINES];
-extern bool             qp_log_redraw;
+void sendchar_qp_hook(uint8_t c);
 
-bool elpekenin_sendchar_hook(uint8_t c);
-int8_t elpekenin_sendchar(uint8_t c);
+typedef struct {
+    painter_device_t device;
+    painter_font_handle_t font;
+    uint16_t screen_w;
+    uint16_t x;
+    uint16_t y;
+    uint8_t n_chars;
+    uint32_t delay;
+} qp_logging_render_args_t;
+void qp_logging_render(qp_logging_render_args_t args);

@@ -76,19 +76,37 @@ impl BuildConfig {
         info!("Copied into <blue>{binaries}</>");
     }
 
+    fn set_config(&self, key: impl Into<String>, value: &Option<String>) -> Option<String> {
+        let key = key.into();
+
+        if let Some(value) = value {
+            let stdout = self.git_repo.run(format!("qmk config {key} | cut -d '=' -f2"), true).stdout;
+
+            let prev_value = match String::from_utf8_lossy(&stdout).to_string().as_str() {
+                "None" => None,
+                value => Some(String::from(value)),
+            };
+
+            let _ = self.git_repo.run(format!("qmk config {key}={value}"), true);
+
+            prev_value
+        } else {
+            None
+        }
+    }
+
     fn default_compilation(&self) {
-        let mut command = String::from("qmk compile");
+        // configure keyboard and keymap
+        let prev_keyboard = self.set_config("user.keyboard", &self.build_file.keyboard);
+        let prev_keymap = self.set_config("user.keymap", &self.build_file.keymap);
 
-        if let Some(keyboard) = &self.build_file.keyboard {
-            command.push_str(&format!(" -kb {keyboard}"));
-        }
-
-        if let Some(keymap) = &self.build_file.keymap {
-            command.push_str(&format!(" -km {keymap}"));
-        }
-
+        // compile
         let _ = self.git_repo.run("qmk clean -a", true);
-        let _ = self.git_repo.run(command, true);
+        let _ = self.git_repo.run("qmk compile", true);
+
+        // restore
+        let _ = self.set_config("user.keyboard", &prev_keyboard);
+        let _ = self.set_config("user.keymap", &prev_keymap); 
     }
 }
 

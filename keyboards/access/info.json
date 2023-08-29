@@ -18,9 +18,7 @@
         "nkro": false,
         "quantum_painter": true,
         "rgb_matrix": true,
-        "unicode": false,
-        "usbpd": false,
-        "wpm": false
+        "unicode": false
     },
     "usb": {
         "device_version": "1.0.0",

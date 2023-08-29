@@ -269,24 +269,21 @@ void internal_scrolling_text_tick(void) {
 // =====
 // Hook
 painter_device_t qp_log_target_device;
-void qp_housekeeping(uint32_t now) {
+void housekeeping_qp(uint32_t now) {
     // Handle scrolling texts
     internal_scrolling_text_tick();
 
-    // Set things up
-    painter_device_t   device = qp_log_target_device;
-    uint16_t           width;
-    uint16_t           height;
-    painter_rotation_t rotation;
-    uint16_t           offset_x;
-    uint16_t           offset_y;
-    qp_get_geometry(device, &width, &height, &rotation, &offset_x,  &offset_y);
+    if (!qp_log_target_device) {
+        return;
+    }
 
-    uint16_t              x       = 160;
-    uint16_t              _y      = 100;
-    painter_font_handle_t font    = qp_fonts[1];
-    uint8_t               n_chars = 18;
-    uint32_t              delay   = 500;
+    // Set things up
+    painter_device_t device = qp_log_target_device;
+    uint16_t         width;
+    uint16_t         height;
+    qp_get_geometry(device, &width, &height, NULL, NULL, NULL);
+
+    painter_font_handle_t font = qp_fonts[1];
 
     /* Key logger */
 #if defined(KEYLOG_ENABLE)
@@ -296,7 +293,7 @@ void qp_housekeeping(uint32_t now) {
     // default to white, change it based on WPM (if enabled)
     HSV color = {HSV_WHITE};
 
-    #if defined(WPM_ENABLE)
+#    if defined(WPM_ENABLE)
     uint8_t wpm = get_current_wpm();
 
     if (wpm > 10) {
@@ -308,42 +305,23 @@ void qp_housekeeping(uint32_t now) {
     if (wpm > 50) {
         color = (HSV){HSV_GREEN};
     }
-    #endif // defined(WPM_ENABLE)
+#    endif // defined(WPM_ENABLE)
 
     qp_drawtext_recolor(device, width - textwidth, height - font->line_height, font, keylog, color.h, color.s, color.v, HSV_BLACK);
 #endif // defined(KEYLOG_ENABLE)
 
     /* QP Logging */
-    // re-draw on changes and dont draw at boot, messes up USB detection
-    if (qp_log_redraw && now > 3000) {
-       qp_log_redraw = false;
-
-       // Clear space
-       for (uint8_t i = 0; i < LOG_N_LINES; ++i) {
-           stop_scrolling_text(qp_log_tokens[i]);
-       }
-       qp_rect(device, x, _y, width, _y + LOG_N_LINES * font->line_height, HSV_BLACK, true);
-
-       // -- Weird drawing order to try and synch scrolling texts
-       // Get widths
-       int16_t textwidth[LOG_N_LINES];
-       for (uint8_t i = 0; i < LOG_N_LINES; ++i) {
-           textwidth[i] = qp_textwidth(font, (const char *)qp_log_pointers[i]);
-       }
-       // Draw static texts
-       for (uint8_t i = 0; i < LOG_N_LINES; ++i) {
-           uint16_t y = _y + i * font->line_height;
-           if (textwidth[i] < (width - x)) {
-               qp_drawtext(device, x, y, font, (const char *)qp_log_pointers[i]);
-           }
-       }
-       // Draw scrolling texts
-       for (uint8_t i = 0; i < LOG_N_LINES; ++i) {
-           uint16_t y = _y + i * font->line_height;
-           if (textwidth[i] >= (width - x)) {
-               qp_log_tokens[i] = draw_scrolling_text(device, x, y, font, (const char *)qp_log_pointers  [i], n_chars, delay);
-           }
-       }
+    qp_logging_render_args_t args = {
+        .device = device,
+        .font = font,
+        .screen_w = width,
+        .x = 160,
+        .y = 100,
+        .n_chars = 18,
+        .delay = 500,
+    };
+    if (now > INIT_DELAY + 3000) {
+        qp_logging_render(args);
     }
 
     /* Uptime */

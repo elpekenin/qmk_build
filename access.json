@@ -7,18 +7,13 @@
     "default_compilation": false,
     "operations": [
         {
-            "operation": "exec",
-            "command": "mkdir -p keyboards/elpekenin",
-            "at": "$QMK_BUILD"
-        },
-        {
             "operation": "cp",
-            "orig": "keyboards/access",
+            "orig": "keyboards/access/*",
             "dest": "keyboards/elpekenin/access"
         },
         {
             "operation": "cp",
-            "orig": "userspace",
+            "orig": "userspace/*",
             "dest": "users/elpekenin"
         },
         {
@@ -62,7 +57,7 @@
         },
         {
             "operation": "diff",
-            "file": "xap_keytester.diff"
+            "file": "xap_dynamic_keymap.diff"
         },
         {
             "operation": "exec",

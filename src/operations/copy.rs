@@ -10,6 +10,7 @@ impl OperationTrait for Copy {
     fn apply(&self, state: &BuildConfig) {
         let orig = &self.orig;
         let dest = &format!("{}/{}", &state.git_repo.path, &self.dest);
+        let _ = sh::run(format!("mkdir -p {dest}"), ".", true);
         let _ = sh::run(format!("cp -r {orig} {dest}"), ".", true);
     }
 
