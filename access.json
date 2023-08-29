@@ -57,7 +57,7 @@
         },
         {
             "operation": "diff",
-            "file": "xap_dynamic_keymap.diff"
+            "file": "print_no_console.diff"
         },
         {
             "operation": "exec",

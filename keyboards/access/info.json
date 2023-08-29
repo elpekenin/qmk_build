@@ -11,7 +11,7 @@
         "audio": false,
         "backlight": false,
         "bootmagic": false,
-        "console": true,
+        "console": false,
         "encoder": false,
         "mousekey": false,
         "extrakey": true,

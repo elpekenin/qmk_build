@@ -37,6 +37,14 @@ void housekeeping_task_user(void) {
     housekeeping_split_sync(now);
 #endif // defined(SPLIT_KEYBOARD)
 
+#if defined(DEBUG_MATRIX_SCAN_RATE)
+    static uint32_t last_matrix = 0;
+    if (TIMER_DIFF_32(now, last_matrix) > 6000) {
+        last_matrix = now;
+        dprintf("Scans: %ld\n", get_matrix_scan_rate());
+    }
+#endif // defined(DEBUG_MATRIX_SCAN_RATE)
+
     housekeeping_task_keymap();
 }
 
