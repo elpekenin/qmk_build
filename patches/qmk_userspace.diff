@@ -1,0 +1,527 @@
+diff --git a/Makefile b/Makefile
+index 9f2e4636a4b47..c6c2fe4956f4a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -191,9 +191,20 @@ define PARSE_KEYBOARD
+     KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(ROOT_DIR)/keyboards/$$(KEYBOARD_FOLDER_PATH_4)/keymaps/*/.)))
+     KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(ROOT_DIR)/keyboards/$$(KEYBOARD_FOLDER_PATH_5)/keymaps/*/.)))
+ 
++    ifneq ($(QMK_USERSPACE),)
++        KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(QMK_USERSPACE)/keyboards/$$(KEYBOARD_FOLDER_PATH_1)/keymaps/*/.)))
++        KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(QMK_USERSPACE)/keyboards/$$(KEYBOARD_FOLDER_PATH_2)/keymaps/*/.)))
++        KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(QMK_USERSPACE)/keyboards/$$(KEYBOARD_FOLDER_PATH_3)/keymaps/*/.)))
++        KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(QMK_USERSPACE)/keyboards/$$(KEYBOARD_FOLDER_PATH_4)/keymaps/*/.)))
++        KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(QMK_USERSPACE)/keyboards/$$(KEYBOARD_FOLDER_PATH_5)/keymaps/*/.)))
++    endif
++
+     KEYBOARD_LAYOUTS := $(shell $(QMK_BIN) list-layouts --keyboard $1)
+     LAYOUT_KEYMAPS :=
+     $$(foreach LAYOUT,$$(KEYBOARD_LAYOUTS),$$(eval LAYOUT_KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(ROOT_DIR)/layouts/*/$$(LAYOUT)/*/.)))))
++    ifneq ($(QMK_USERSPACE),)
++        $$(foreach LAYOUT,$$(KEYBOARD_LAYOUTS),$$(eval LAYOUT_KEYMAPS += $$(notdir $$(patsubst %/.,%,$$(wildcard $(QMK_USERSPACE)/layouts/$$(LAYOUT)/*/.)))))
++    endif
+ 
+     KEYMAPS := $$(sort $$(KEYMAPS) $$(LAYOUT_KEYMAPS))
+ 
+@@ -423,8 +434,18 @@ clean:
+ 	rm -rf $(BUILD_DIR)
+ 	echo 'done.'
+ 
+-.PHONY: distclean
+-distclean: clean
++.PHONY: distclean distclean_qmk
++distclean: distclean_qmk
++distclean_qmk: clean
+ 	echo -n 'Deleting *.bin, *.hex, and *.uf2 ... '
+ 	rm -f *.bin *.hex *.uf2
+ 	echo 'done.'
++
++ifneq ($(QMK_USERSPACE),)
++.PHONY: distclean_userspace
++distclean: distclean_userspace
++distclean_userspace: clean
++	echo -n 'Deleting user overlay *.bin, *.hex, and *.uf2 ... '
++	rm -f $(QMK_USERSPACE)/*.bin $(QMK_USERSPACE)/*.hex $(QMK_USERSPACE)/*.uf2
++	echo 'done.'
++endif
+diff --git a/builddefs/build_json.mk b/builddefs/build_json.mk
+index 0c034eb2aea0c..67082340ec226 100644
+--- a/builddefs/build_json.mk
++++ b/builddefs/build_json.mk
+@@ -15,3 +15,22 @@ else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_1)/keymap.json)","")
+     KEYMAP_JSON := $(MAIN_KEYMAP_PATH_1)/keymap.json
+     KEYMAP_PATH := $(MAIN_KEYMAP_PATH_1)
+ endif
++
++ifneq ($(QMK_USERSPACE),)
++    ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)/keymap.json)","")
++        KEYMAP_JSON := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)/keymap.json
++        KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)
++    else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)/keymap.json)","")
++        KEYMAP_JSON := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)/keymap.json
++        KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)
++    else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)/keymap.json)","")
++        KEYMAP_JSON := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)/keymap.json
++        KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)
++    else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)/keymap.json)","")
++        KEYMAP_JSON := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)/keymap.json
++        KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)
++    else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)/keymap.json)","")
++        KEYMAP_JSON := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)/keymap.json
++        KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)
++    endif
++endif
+diff --git a/builddefs/build_keyboard.mk b/builddefs/build_keyboard.mk
+index e93ab97cc134f..998cdd66cda9f 100644
+--- a/builddefs/build_keyboard.mk
++++ b/builddefs/build_keyboard.mk
+@@ -129,32 +129,57 @@ include $(BUILDDEFS_PATH)/build_json.mk
+ # Pull in keymap level rules.mk
+ ifeq ("$(wildcard $(KEYMAP_PATH))", "")
+     # Look through the possible keymap folders until we find a matching keymap.c
+-    ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_1)/keymap.c)","")
+-        -include $(MAIN_KEYMAP_PATH_1)/rules.mk
+-        KEYMAP_C := $(MAIN_KEYMAP_PATH_1)/keymap.c
+-        KEYMAP_PATH := $(MAIN_KEYMAP_PATH_1)
+-    else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_2)/keymap.c)","")
+-        -include $(MAIN_KEYMAP_PATH_2)/rules.mk
+-        KEYMAP_C := $(MAIN_KEYMAP_PATH_2)/keymap.c
+-        KEYMAP_PATH := $(MAIN_KEYMAP_PATH_2)
+-    else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_3)/keymap.c)","")
+-        -include $(MAIN_KEYMAP_PATH_3)/rules.mk
+-        KEYMAP_C := $(MAIN_KEYMAP_PATH_3)/keymap.c
+-        KEYMAP_PATH := $(MAIN_KEYMAP_PATH_3)
+-    else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_4)/keymap.c)","")
+-        -include $(MAIN_KEYMAP_PATH_4)/rules.mk
+-        KEYMAP_C := $(MAIN_KEYMAP_PATH_4)/keymap.c
+-        KEYMAP_PATH := $(MAIN_KEYMAP_PATH_4)
+-    else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_5)/keymap.c)","")
+-        -include $(MAIN_KEYMAP_PATH_5)/rules.mk
+-        KEYMAP_C := $(MAIN_KEYMAP_PATH_5)/keymap.c
+-        KEYMAP_PATH := $(MAIN_KEYMAP_PATH_5)
+-    else ifneq ($(LAYOUTS),)
+-        # If we haven't found a keymap yet fall back to community layouts
+-        include $(BUILDDEFS_PATH)/build_layout.mk
+-    else
+-        $(call CATASTROPHIC_ERROR,Invalid keymap,Could not find keymap)
+-        # this state should never be reached
++    ifneq ($(QMK_USERSPACE),)
++        ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)/keymap.c)","")
++            -include $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)/rules.mk
++            KEYMAP_C := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)/keymap.c
++            KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_1)
++        else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)/keymap.c)","")
++            -include $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)/rules.mk
++            KEYMAP_C := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)/keymap.c
++            KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_2)
++        else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)/keymap.c)","")
++            -include $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)/rules.mk
++            KEYMAP_C := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)/keymap.c
++            KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_3)
++        else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)/keymap.c)","")
++            -include $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)/rules.mk
++            KEYMAP_C := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)/keymap.c
++            KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_4)
++        else ifneq ("$(wildcard $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)/keymap.c)","")
++            -include $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)/rules.mk
++            KEYMAP_C := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)/keymap.c
++            KEYMAP_PATH := $(QMK_USERSPACE)/$(MAIN_KEYMAP_PATH_5)
++        endif
++    endif
++    ifeq ($(KEYMAP_PATH),)
++        ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_1)/keymap.c)","")
++            -include $(MAIN_KEYMAP_PATH_1)/rules.mk
++            KEYMAP_C := $(MAIN_KEYMAP_PATH_1)/keymap.c
++            KEYMAP_PATH := $(MAIN_KEYMAP_PATH_1)
++        else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_2)/keymap.c)","")
++            -include $(MAIN_KEYMAP_PATH_2)/rules.mk
++            KEYMAP_C := $(MAIN_KEYMAP_PATH_2)/keymap.c
++            KEYMAP_PATH := $(MAIN_KEYMAP_PATH_2)
++        else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_3)/keymap.c)","")
++            -include $(MAIN_KEYMAP_PATH_3)/rules.mk
++            KEYMAP_C := $(MAIN_KEYMAP_PATH_3)/keymap.c
++            KEYMAP_PATH := $(MAIN_KEYMAP_PATH_3)
++        else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_4)/keymap.c)","")
++            -include $(MAIN_KEYMAP_PATH_4)/rules.mk
++            KEYMAP_C := $(MAIN_KEYMAP_PATH_4)/keymap.c
++            KEYMAP_PATH := $(MAIN_KEYMAP_PATH_4)
++        else ifneq ("$(wildcard $(MAIN_KEYMAP_PATH_5)/keymap.c)","")
++            -include $(MAIN_KEYMAP_PATH_5)/rules.mk
++            KEYMAP_C := $(MAIN_KEYMAP_PATH_5)/keymap.c
++            KEYMAP_PATH := $(MAIN_KEYMAP_PATH_5)
++        else ifneq ($(LAYOUTS),)
++            # If we haven't found a keymap yet fall back to community layouts
++            include $(BUILDDEFS_PATH)/build_layout.mk
++        else
++            $(call CATASTROPHIC_ERROR,Invalid keymap,Could not find keymap)
++            # this state should never be reached
++        endif
+     endif
+ endif
+ 
+@@ -359,6 +384,10 @@ ifeq ("$(USER_NAME)","")
+ endif
+ USER_PATH := users/$(USER_NAME)
+ 
++ifneq ($(QMK_USERSPACE),)
++    USER_PATH := $(QMK_USERSPACE)/$(USER_PATH)
++endif
++
+ # Pull in user level rules.mk
+ -include $(USER_PATH)/rules.mk
+ ifneq ("$(wildcard $(USER_PATH)/config.h)","")
+diff --git a/builddefs/build_layout.mk b/builddefs/build_layout.mk
+index 6166bd847c593..9ff99cc2218ef 100644
+--- a/builddefs/build_layout.mk
++++ b/builddefs/build_layout.mk
+@@ -1,6 +1,10 @@
+ LAYOUTS_PATH := layouts
+ LAYOUTS_REPOS := $(patsubst %/,%,$(sort $(dir $(wildcard $(LAYOUTS_PATH)/*/))))
+ 
++ifneq ($(QMK_USERSPACE),)
++    LAYOUTS_REPOS += $(patsubst %/,%,$(QMK_USERSPACE)/$(LAYOUTS_PATH))
++endif
++
+ define SEARCH_LAYOUTS_REPO
+     LAYOUT_KEYMAP_PATH := $$(LAYOUTS_REPO)/$$(LAYOUT)/$$(KEYMAP)
+     LAYOUT_KEYMAP_JSON := $$(LAYOUT_KEYMAP_PATH)/keymap.json
+diff --git a/builddefs/common_rules.mk b/builddefs/common_rules.mk
+index 5d635307edb90..ae17ad127e967 100644
+--- a/builddefs/common_rules.mk
++++ b/builddefs/common_rules.mk
+@@ -188,7 +188,7 @@ DFU_SUFFIX_ARGS ?=
+ elf: $(BUILD_DIR)/$(TARGET).elf
+ hex: $(BUILD_DIR)/$(TARGET).hex
+ uf2: $(BUILD_DIR)/$(TARGET).uf2
+-cpfirmware: $(FIRMWARE_FORMAT)
++cpfirmware_qmk: $(FIRMWARE_FORMAT)
+ 	$(SILENT) || printf "Copying $(TARGET).$(FIRMWARE_FORMAT) to qmk_firmware folder" | $(AWK_CMD)
+ 	$(COPY) $(BUILD_DIR)/$(TARGET).$(FIRMWARE_FORMAT) $(TARGET).$(FIRMWARE_FORMAT) && $(PRINT_OK)
+ eep: $(BUILD_DIR)/$(TARGET).eep
+@@ -197,6 +197,15 @@ sym: $(BUILD_DIR)/$(TARGET).sym
+ LIBNAME=lib$(TARGET).a
+ lib: $(LIBNAME)
+ 
++cpfirmware: cpfirmware_qmk
++
++ifneq ($(QMK_USERSPACE),)
++cpfirmware: cpfirmware_userspace
++cpfirmware_userspace: cpfirmware_qmk
++	$(SILENT) || printf "Copying $(TARGET).$(FIRMWARE_FORMAT) to user overlay folder" | $(AWK_CMD)
++	$(COPY) $(BUILD_DIR)/$(TARGET).$(FIRMWARE_FORMAT) $(QMK_USERSPACE)/$(TARGET).$(FIRMWARE_FORMAT) && $(PRINT_OK)
++endif
++
+ # Display size of file, modifying the output so people don't mistakenly grab the hex output
+ BINARY_SIZE = $(SIZE) --target=$(FORMAT) $(BUILD_DIR)/$(TARGET).hex | $(SED) -e 's/\.build\/.*$$/$(TARGET).$(FIRMWARE_FORMAT)/g'
+ 
+diff --git a/lib/python/qmk/cli/mass_compile.py b/lib/python/qmk/cli/mass_compile.py
+index ddd946a32bc6b..9dad5420e9d6f 100755
+--- a/lib/python/qmk/cli/mass_compile.py
++++ b/lib/python/qmk/cli/mass_compile.py
+@@ -7,7 +7,7 @@
+ from subprocess import DEVNULL
+ from milc import cli
+ 
+-from qmk.constants import QMK_FIRMWARE
++from qmk.constants import QMK_FIRMWARE, QMK_USERSPACE
+ from qmk.commands import _find_make, get_make_parallel_args
+ from qmk.keyboard import resolve_keyboard
+ from qmk.search import search_keymap_targets
+@@ -49,6 +49,11 @@ def mass_compile(cli):
+ 
+     builddir.mkdir(parents=True, exist_ok=True)
+     with open(makefile, "w") as f:
++
++        userspace_suffix = ''
++        if Path(QMK_FIRMWARE).resolve() != Path(QMK_USERSPACE).resolve():
++            userspace_suffix = f'QMK_USERSPACE={Path(QMK_USERSPACE).resolve()}'
++
+         for target in sorted(targets):
+             keyboard_name = target[0]
+             keymap_name = target[1]
+@@ -62,7 +67,7 @@ def mass_compile(cli):
+ {keyboard_safe}_{keymap_name}_binary:
+ 	@rm -f "{build_log}" || true
+ 	@echo "Compiling QMK Firmware for target: '{keyboard_name}:{keymap_name}'..." >>"{build_log}"
+-	+@$(MAKE) -C "{QMK_FIRMWARE}" -f "{QMK_FIRMWARE}/builddefs/build_keyboard.mk" KEYBOARD="{keyboard_name}" KEYMAP="{keymap_name}" COLOR=true SILENT=false {' '.join(cli.args.env)} \\
++	+@$(MAKE) -C "{QMK_FIRMWARE}" -f "{QMK_FIRMWARE}/builddefs/build_keyboard.mk" KEYBOARD="{keyboard_name}" KEYMAP="{keymap_name}" COLOR=true SILENT=false {userspace_suffix} {' '.join(cli.args.env)} \\
+ 		>>"{build_log}" 2>&1 \\
+ 		|| cp "{build_log}" "{failed_log}"
+ 	@{{ grep '\[ERRORS\]' "{build_log}" >/dev/null 2>&1 && printf "Build %-64s \e[1;31m[ERRORS]\e[0m\\n" "{keyboard_name}:{keymap_name}" ; }} \\
+diff --git a/lib/python/qmk/commands.py b/lib/python/qmk/commands.py
+index 660b2ff72e608..4b1fea6bbb8cb 100644
+--- a/lib/python/qmk/commands.py
++++ b/lib/python/qmk/commands.py
+@@ -9,7 +9,7 @@
+ from milc import cli
+ import jsonschema
+ 
+-from qmk.constants import INTERMEDIATE_OUTPUT_PREFIX
++from qmk.constants import INTERMEDIATE_OUTPUT_PREFIX, QMK_FIRMWARE, QMK_USERSPACE
+ from qmk.json_schema import json_load, validate
+ 
+ 
+@@ -51,6 +51,9 @@ def create_make_target(target, dry_run=False, parallel=1, **env_vars):
+     for key, value in env_vars.items():
+         env.append(f'{key}={value}')
+ 
++    if Path(QMK_FIRMWARE).resolve() != Path(QMK_USERSPACE).resolve():
++        env.append(f'QMK_USERSPACE={Path(QMK_USERSPACE).resolve()}')
++
+     if cli.config.general.verbose:
+         env.append('VERBOSE=true')
+ 
+diff --git a/lib/python/qmk/constants.py b/lib/python/qmk/constants.py
+index 97bd84aa23449..6db38c3049fa4 100644
+--- a/lib/python/qmk/constants.py
++++ b/lib/python/qmk/constants.py
+@@ -4,8 +4,11 @@
+ from datetime import date
+ from pathlib import Path
+ 
++from milc import cli
++
+ # The root of the qmk_firmware tree.
+ QMK_FIRMWARE = Path.cwd()
++QMK_USERSPACE = environ.get('QMK_USERSPACE') or cli.config.user.overlay_dir or QMK_FIRMWARE
+ 
+ # Upstream repo url
+ QMK_FIRMWARE_UPSTREAM = 'qmk/qmk_firmware'
+diff --git a/lib/python/qmk/keyboard.py b/lib/python/qmk/keyboard.py
+index 235b62640c20b..ff3e9f39cae73 100644
+--- a/lib/python/qmk/keyboard.py
++++ b/lib/python/qmk/keyboard.py
+@@ -36,7 +36,9 @@
+ def find_keyboard_from_dir():
+     """Returns a keyboard name based on the user's current directory.
+     """
+-    relative_cwd = qmk.path.under_qmk_firmware()
++    relative_cwd = qmk.path.under_qmk_userspace()
++    if not relative_cwd:
++        relative_cwd = qmk.path.under_qmk_firmware()
+ 
+     if relative_cwd and len(relative_cwd.parts) > 1 and relative_cwd.parts[0] == 'keyboards':
+         # Attempt to extract the keyboard name from the current directory
+diff --git a/lib/python/qmk/keymap.py b/lib/python/qmk/keymap.py
+index 11e8d39dadf54..bac919a773f45 100644
+--- a/lib/python/qmk/keymap.py
++++ b/lib/python/qmk/keymap.py
+@@ -12,6 +12,7 @@
+ from pygments import lex
+ 
+ import qmk.path
++from qmk.constants import QMK_FIRMWARE, QMK_USERSPACE
+ from qmk.keyboard import find_keyboard_from_dir, keyboard_folder
+ from qmk.errors import CppError
+ from qmk.info import info_json
+@@ -195,29 +196,38 @@ def find_keymap_from_dir():
+     """Returns `(keymap_name, source)` for the directory we're currently in.
+ 
+     """
+-    relative_cwd = qmk.path.under_qmk_firmware()
++    def _impl_find_keymap_from_dir(relative_cwd):
++        if relative_cwd and len(relative_cwd.parts) > 1:
++            # If we're in `qmk_firmware/keyboards` and `keymaps` is in our path, try to find the keyboard name.
++            if relative_cwd.parts[0] == 'keyboards' and 'keymaps' in relative_cwd.parts:
++                current_path = Path('/'.join(relative_cwd.parts[1:]))  # Strip 'keyboards' from the front
+ 
+-    if relative_cwd and len(relative_cwd.parts) > 1:
+-        # If we're in `qmk_firmware/keyboards` and `keymaps` is in our path, try to find the keyboard name.
+-        if relative_cwd.parts[0] == 'keyboards' and 'keymaps' in relative_cwd.parts:
+-            current_path = Path('/'.join(relative_cwd.parts[1:]))  # Strip 'keyboards' from the front
++                if 'keymaps' in current_path.parts and current_path.name != 'keymaps':
++                    while current_path.parent.name != 'keymaps':
++                        current_path = current_path.parent
+ 
+-            if 'keymaps' in current_path.parts and current_path.name != 'keymaps':
+-                while current_path.parent.name != 'keymaps':
+-                    current_path = current_path.parent
++                    return current_path.name, 'keymap_directory'
+ 
+-                return current_path.name, 'keymap_directory'
++            # If we're in `qmk_firmware/layouts` guess the name from the community keymap they're in
++            elif relative_cwd.parts[0] == 'layouts' and is_keymap_dir(relative_cwd):
++                return relative_cwd.name, 'layouts_directory'
+ 
+-        # If we're in `qmk_firmware/layouts` guess the name from the community keymap they're in
+-        elif relative_cwd.parts[0] == 'layouts' and is_keymap_dir(relative_cwd):
+-            return relative_cwd.name, 'layouts_directory'
++            # If we're in `qmk_firmware/users` guess the name from the userspace they're in
++            elif relative_cwd.parts[0] == 'users':
++                # Guess the keymap name based on which userspace they're in
++                return relative_cwd.parts[1], 'users_directory'
++        return None, None
+ 
+-        # If we're in `qmk_firmware/users` guess the name from the userspace they're in
+-        elif relative_cwd.parts[0] == 'users':
+-            # Guess the keymap name based on which userspace they're in
+-            return relative_cwd.parts[1], 'users_directory'
++    if Path(QMK_FIRMWARE).resolve() != Path(QMK_USERSPACE).resolve():
++        name, source = _impl_find_keymap_from_dir(qmk.path.under_qmk_userspace())
++        if name and source:
++            return name, source
+ 
+-    return None, None
++    name, source = _impl_find_keymap_from_dir(qmk.path.under_qmk_firmware())
++    if name and source:
++        return name, source
++
++    return (None, None)
+ 
+ 
+ def keymap_completer(prefix, action, parser, parsed_args):
+@@ -418,21 +428,22 @@ def locate_keymap(keyboard, keymap):
+         raise KeyError('Invalid keyboard: ' + repr(keyboard))
+ 
+     # Check the keyboard folder first, last match wins
+-    checked_dirs = ''
+     keymap_path = ''
+ 
+-    for dir in keyboard_folder(keyboard).split('/'):
+-        if checked_dirs:
+-            checked_dirs = '/'.join((checked_dirs, dir))
+-        else:
+-            checked_dirs = dir
++    for search_dir in [QMK_FIRMWARE, QMK_USERSPACE]:
++        checked_dirs = ''
++        for dir in keyboard_folder(keyboard).split('/'):
++            if checked_dirs:
++                checked_dirs = '/'.join((checked_dirs, dir))
++            else:
++                checked_dirs = dir
+ 
+-        keymap_dir = Path('keyboards') / checked_dirs / 'keymaps'
++            keymap_dir = Path(search_dir) / Path('keyboards') / checked_dirs / 'keymaps'
+ 
+-        if (keymap_dir / keymap / 'keymap.c').exists():
+-            keymap_path = keymap_dir / keymap / 'keymap.c'
+-        if (keymap_dir / keymap / 'keymap.json').exists():
+-            keymap_path = keymap_dir / keymap / 'keymap.json'
++            if (keymap_dir / keymap / 'keymap.c').exists():
++                keymap_path = keymap_dir / keymap / 'keymap.c'
++            if (keymap_dir / keymap / 'keymap.json').exists():
++                keymap_path = keymap_dir / keymap / 'keymap.json'
+ 
+     if keymap_path:
+         return keymap_path
+@@ -440,7 +451,11 @@ def locate_keymap(keyboard, keymap):
+     # Check community layouts as a fallback
+     info = info_json(keyboard)
+ 
+-    for community_parent in Path('layouts').glob('*/'):
++    community_parents = list(Path('layouts').glob('*/'))
++    if Path(QMK_FIRMWARE).resolve() != Path(QMK_USERSPACE).resolve() and (Path(QMK_USERSPACE) / "layouts").exists():
++        community_parents.append(Path(QMK_USERSPACE) / "layouts")
++
++    for community_parent in community_parents:
+         for layout in info.get("community_layouts", []):
+             community_layout = community_parent / layout / keymap
+             if community_layout.exists():
+@@ -474,26 +489,30 @@ def list_keymaps(keyboard, c=True, json=True, additional_files=None, fullpath=Fa
+     """
+     names = set()
+ 
+-    keyboards_dir = Path('keyboards')
+-    kb_path = keyboards_dir / keyboard
+-
+     # walk up the directory tree until keyboards_dir
+     # and collect all directories' name with keymap.c file in it
+-    while kb_path != keyboards_dir:
+-        keymaps_dir = kb_path / "keymaps"
+-
+-        if keymaps_dir.is_dir():
+-            for keymap in keymaps_dir.iterdir():
+-                if is_keymap_dir(keymap, c, json, additional_files):
+-                    keymap = keymap if fullpath else keymap.name
+-                    names.add(keymap)
++    for search_dir in [QMK_FIRMWARE, QMK_USERSPACE]:
++        keyboards_dir = search_dir / Path('keyboards')
++        kb_path = keyboards_dir / keyboard
++
++        while kb_path != keyboards_dir:
++            keymaps_dir = kb_path / "keymaps"
++            if keymaps_dir.is_dir():
++                for keymap in keymaps_dir.iterdir():
++                    if is_keymap_dir(keymap, c, json, additional_files):
++                        keymap = keymap if fullpath else keymap.name
++                        names.add(keymap)
+ 
+-        kb_path = kb_path.parent
++            kb_path = kb_path.parent
+ 
+     # Check community layouts as a fallback
+     info = info_json(keyboard)
+ 
+-    for community_parent in Path('layouts').glob('*/'):
++    community_parents = list(Path('layouts').glob('*/'))
++    if Path(QMK_FIRMWARE).resolve() != Path(QMK_USERSPACE).resolve() and (Path(QMK_USERSPACE) / "layouts").exists():
++        community_parents.append(Path(QMK_USERSPACE) / "layouts")
++
++    for community_parent in community_parents:
+         for layout in info.get("community_layouts", []):
+             cl_path = community_parent / layout
+             if cl_path.is_dir():
+diff --git a/lib/python/qmk/path.py b/lib/python/qmk/path.py
+index 9d248451b86f9..3a069e2c15ddc 100644
+--- a/lib/python/qmk/path.py
++++ b/lib/python/qmk/path.py
+@@ -5,7 +5,7 @@
+ import argparse
+ from pathlib import Path
+ 
+-from qmk.constants import MAX_KEYBOARD_SUBFOLDERS, QMK_FIRMWARE
++from qmk.constants import MAX_KEYBOARD_SUBFOLDERS, QMK_FIRMWARE, QMK_USERSPACE
+ from qmk.errors import NoSuchKeyboardError
+ 
+ 
+@@ -30,6 +30,17 @@ def under_qmk_firmware():
+         return None
+ 
+ 
++def under_qmk_userspace():
++    """Returns a Path object representing the relative path under $QMK_USERSPACE, qmk root, or None.
++    """
++    cwd = Path(os.environ['ORIG_CWD'])
++
++    try:
++        return cwd.relative_to(QMK_USERSPACE)
++    except ValueError:
++        return None
++
++
+ def keyboard(keyboard_name):
+     """Returns the path to a keyboard's directory relative to the qmk root.
+     """
+@@ -47,11 +58,13 @@ def keymaps(keyboard_name):
+     keyboard_folder = keyboard(keyboard_name)
+     found_dirs = []
+ 
+-    for _ in range(MAX_KEYBOARD_SUBFOLDERS):
+-        if (keyboard_folder / 'keymaps').exists():
+-            found_dirs.append((keyboard_folder / 'keymaps').resolve())
++    for root_dir in [QMK_USERSPACE, QMK_FIRMWARE]:
++        this_keyboard_folder = root_dir / keyboard_folder
++        for _ in range(MAX_KEYBOARD_SUBFOLDERS):
++            if (this_keyboard_folder / 'keymaps').exists():
++                found_dirs.append((this_keyboard_folder / 'keymaps').resolve())
+ 
+-        keyboard_folder = keyboard_folder.parent
++            this_keyboard_folder = this_keyboard_folder.parent
+ 
+     if len(found_dirs) > 0:
+         return found_dirs
+diff --git a/builddefs/xap.mk b/builddefs/xap.mk
+index 78e138aca0..702d11be28 100644
+--- a/builddefs/xap.mk
++++ b/builddefs/xap.mk
+@@ -24,6 +24,10 @@ ifneq ("$(wildcard $(USER_NAME)/xap.hjson)","")
+ 	XAP_FILES += $(USER_NAME)/xap.hjson
+ endif
+ 
++ifneq ("$(wildcard $(QMK_USERSPACE)/$(USER_NAME)/xap.hjson)","")
++	XAP_FILES += $(QMK_USERSPACE)/$(USER_NAME)/xap.hjson
++endif
++
+ $(INTERMEDIATE_OUTPUT)/src/config_blob_gz.h: $(INFO_JSON_FILES)
+ 	@$(SILENT) || printf "$(MSG_GENERATING) $@" | $(AWK_CMD)
+ 	$(eval CMD=$(QMK_BIN) xap-generate-qmk-blob-h -o "$(INTERMEDIATE_OUTPUT)/src/config_blob_gz.h" -kb $(KEYBOARD) -km $(KEYMAP))

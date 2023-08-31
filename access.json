@@ -8,12 +8,12 @@
     "operations": [
         {
             "operation": "cp",
-            "orig": "keyboards/access/*",
+            "orig": "keyboards/elpekenin/access/*",
             "dest": "keyboards/elpekenin/access"
         },
         {
             "operation": "cp",
-            "orig": "userspace/*",
+            "orig": "users/elpekenin/*",
             "dest": "users/elpekenin"
         },
         {
