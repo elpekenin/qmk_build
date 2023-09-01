@@ -49,6 +49,27 @@
             "operation": "cp",
             "orig": "keymaps/stm32_tests/*",
             "dest": "keyboards/handwired/onekey/keymaps/stm32_tests"
+        },
+        {
+            "operation": "exec",
+            "at": "$QMK_BUILD",
+            "command": "qmk compile -kb handwired/onekey/stm32h7 -km stm32_tests -e TARGET=debug"
+        }
+    ],
+    "default_compilation": false,
+    "post_compilation": [
+        {
+            "operation": "cp",
+            "orig": "misc/launch.json",
+            "dest": ".vscode"
+        },
+        {
+            "operation": "exec",
+            "command": "code $QMK_BUILD"
+        },
+        {
+            "operation": "exec",
+            "command": "cp binaries/* /mnt/d"
         }
     ]
 }

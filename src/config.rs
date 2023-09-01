@@ -46,6 +46,10 @@ pub struct BuildFile {
     // or not (provide your own command/script at a step)
     #[serde(default = "_true")]
     pub default_compilation: bool,
+
+    // Do stuff after compiling
+    #[serde(default = "default_operations")]
+    pub post_compilation: Vec<Operation>,
 }
 
 impl BuildFile {

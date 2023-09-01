@@ -27,9 +27,6 @@ uint32_t deferred_init(uint32_t trigger_time, void *cb_arg) {
 #if defined(FILESYSTEM_ENABLE)
     uint32_t boot_count = 0;
 
-    dprintf("Initing\n");
-    wait_ms(1000);
-
     if (!fs_init()) {
         dprintf("fs error: init\n");
         return 0;

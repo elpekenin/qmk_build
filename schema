@@ -36,6 +36,12 @@
       "default": "$HOME/.__qmk_build__",
       "type": "string"
     },
+    "post_compilation": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Operation"
+      }
+    },
     "repo": {
       "type": "string"
     }

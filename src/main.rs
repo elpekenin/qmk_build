@@ -133,6 +133,12 @@ fn main() {
 
     config.copy_binaries();
 
+    // Post-compile stuff
+    for operation in &config.build_file.post_compilation {
+        info!("{}", operation.message());
+        operation.apply(&config);
+    }
+
     info!("<green>Finished</>");
     exit(0);
 }

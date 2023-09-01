@@ -70,7 +70,8 @@ const struct lfs_config lfs_cfg = {
     .read_size      = MMCSD_BLOCK_SIZE,
     .prog_size      = MMCSD_BLOCK_SIZE,
     .block_size     = MMCSD_BLOCK_SIZE,
-    .block_count    = 1,
+    .block_count    = (2 * 32 * 1024), // 2 * 32 * 1024 * 512 bytes == 32MB 
+    .block_cycles   = 10,
     .cache_size     = MMCSD_BLOCK_SIZE,
     .lookahead_size = MMCSD_BLOCK_SIZE,
 
