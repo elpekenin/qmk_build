@@ -5,39 +5,37 @@
 
 #include "placeholders.h"
 #include "user_layers.h"
+#include "user_rgb_matrix_types.h"
 
-void render_rst_layer(void) {
-    rgb_matrix_set_color_all(RGB_OFF);
+// Note: Can't map a color to KC_NO with current implementation, as unassigned elements would be filled with it(0)
+static const keycode_color_map_t layer_mappings[][COLORS_PER_LAYER] = {
+    [_RST] = {
+        KC_COLOR(QK_BOOT, RGB_RED),
+        KC_COLOR(QK_RBT, RGB_BLUE),
+        KC_COLOR(EE_CLR, RGB_ORANGE),
+        KC_COLOR(DB_TOGG, MAX_WHITE),
+    }
+};
 
+static inline RGB get_color(uint8_t layer_num, uint16_t keycode) {
+    for (uint8_t i=0; i < COLORS_PER_LAYER; ++i) {
+        keycode_color_map_t map = layer_mappings[layer_num][i];
+        if (map.keycode && map.keycode == keycode) {
+            return map.color;
+        }
+    }
+
+    return (RGB){RGB_OFF};
+}
+
+static void render_layer(uint8_t layer_num) {
     for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
         for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
             uint8_t index = g_led_config.matrix_co[row][col];
+            uint16_t keycode = keymap_key_to_keycode(layer_num, (keypos_t){col,row});
 
-            switch (keymap_key_to_keycode(_RST, (keypos_t){col,row})) {
-                case QK_BOOT:
-                    rgb_matrix_set_color(index, RGB_RED);
-                    break;
-
-                case QK_RBT:
-                    rgb_matrix_set_color(index, RGB_BLUE);
-                    break;
-
-                case EE_CLR:
-                    rgb_matrix_set_color(index, RGB_ORANGE);
-                    break;
-
-                case DB_TOGG:
-                    rgb_matrix_set_color(
-                        index,
-                        RGB_MATRIX_MAXIMUM_BRIGHTNESS,
-                        RGB_MATRIX_MAXIMUM_BRIGHTNESS,
-                        RGB_MATRIX_MAXIMUM_BRIGHTNESS
-                    );
-                    break;
-
-                default:
-                    break;
-            }
+            RGB color = get_color(layer_num, keycode);
+            rgb_matrix_set_color(index, color.r, color.g, color.b);
         }
     }
 }
@@ -47,9 +45,10 @@ bool rgb_matrix_indicators_user(void) {
         return false;
     }
 
-    switch (get_highest_layer(layer_state)) {
+    uint8_t layer_num = get_highest_layer(layer_state);
+    switch (layer_num) {
         case _RST:
-            render_rst_layer();
+            render_layer(layer_num);
             break;
 
         default:
@@ -60,13 +59,6 @@ bool rgb_matrix_indicators_user(void) {
 }
 
 bool led_update_user(led_t led_state) {
-    // bodge for layer_tap calling this func
-    static uint8_t old_state = 0;
-    if (old_state == led_state.raw) {
-        return true;
-    }
-    old_state = led_state.raw;
-
     if (!led_update_keymap(led_state)) {
         return false;
     }
@@ -83,7 +75,6 @@ bool led_update_user(led_t led_state) {
         rgb_matrix_mode_noeeprom(RGB_MATRIX_CYCLE_LEFT_RIGHT);
     }
     debug_enable = old_debug_state;
-
 
     return false;
 }
