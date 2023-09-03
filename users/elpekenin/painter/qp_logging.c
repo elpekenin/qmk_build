@@ -63,8 +63,10 @@ void qp_logging_render(qp_logging_render_args_t args) {
 
         uint16_t y = args.y + i * args.font->line_height;
 
-        stop_scrolling_text(qp_log_tokens[i]);
-        qp_log_tokens[i] = 0;
+        if (qp_log_tokens[i] != INVALID_DEFERRED_TOKEN) {
+            stop_scrolling_text(qp_log_tokens[i]);
+            qp_log_tokens[i] = INVALID_DEFERRED_TOKEN;
+        }
 
         if (text_fits) {
             qp_drawtext(args.device, args.x, y, args.font, (const char *)qp_log_pointers[i]);

@@ -60,7 +60,7 @@ void housekeeping_task_keymap(void) {
     xap_screen_pressed(ILI9341_ID, ili9341_touch_report);
 
 #    if defined(ONE_HAND_ENABLE)
-    screen_one_hand(touch_report);
+    screen_one_hand(ili9341_touch_report);
 #    endif // ONE_HAND_ENABLE
 }
 #endif // defined(QUANTUM_PAINTER_ENABLE) && defined (TOUCH_SCREEN_ENABLE) && defined(INIT_EE_HANDS_RIGHT)

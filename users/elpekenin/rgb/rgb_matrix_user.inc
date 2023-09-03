@@ -71,14 +71,16 @@ static bool onehand_mode(effect_params_t *params) {
                     } else {
                         one_hand_row -= MATRIX_ROWS/2;
                     }
+                } else {
+                    one_hand_col--;
+                }
 #else
                 if (one_hand_col == 0) {
                     one_hand_col = MATRIX_COLS - 1;
-                }
-#endif // SPLIT_KEYBOARD
-                else {
+                } else {
                     one_hand_col--;
                 }
+#endif // SPLIT_KEYBOARD
                 break;
 
             case DIRECTION_RIGHT:
@@ -90,14 +92,16 @@ static bool onehand_mode(effect_params_t *params) {
                     } else {
                         one_hand_row -= MATRIX_ROWS/2;
                     }
+                } else {
+                    one_hand_col++;
+                }
 #else
                 if (one_hand_col == MATRIX_COLS - 1) {
                     one_hand_col = 0;
-                }
-#endif // SPLIT_KEYBOARD
-                else {
+                } else {
                     one_hand_col++;
                 }
+#endif // SPLIT_KEYBOARD
                 break;
 
             case DIRECTION_NONE:

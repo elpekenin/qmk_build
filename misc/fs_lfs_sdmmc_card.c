@@ -11,42 +11,63 @@
 #include <hal.h>
 
 bool fs_device_init(void) {
-    // sdcInit done by hal.c
-
-    // NULL -> default config
     fs_dprintf("init\n");
-
+    // NULL -> default config
     return sdcStart(&SD_DRIVER, NULL) >= 0;
 }
 
 int fs_device_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
     fs_dprintf("read\n");
 
-    bool ret = sdcConnect(&SD_DRIVER);
-    ret &= sdcRead(&SD_DRIVER, block * c->block_size + off, buffer, size);
-    ret &= sdcDisconnect(&SD_DRIVER);
+    if (sdcConnect(&SD_DRIVER) != HAL_SUCCESS) {
+        return LFS_ERR_IO;
+    }
+    
+    if (sdcRead(&SD_DRIVER, block * c->block_size + off, buffer, size) != HAL_SUCCESS) {
+        return LFS_ERR_IO;
+    }
 
-    return ret ? -1 : 0;
+    if (sdcDisconnect(&SD_DRIVER) != HAL_SUCCESS) {
+        return LFS_ERR_IO;   
+    }
+
+    return 0;
 }
 
 int fs_device_prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size) {
     fs_dprintf("prog\n");
 
-    bool ret = sdcConnect(&SD_DRIVER);
-    ret &= sdcWrite(&SD_DRIVER, block * c->block_size + off, buffer, size);
-    ret &= sdcDisconnect(&SD_DRIVER);
+    if (sdcConnect(&SD_DRIVER) != HAL_SUCCESS) {
+        return LFS_ERR_IO;
+    }
+    
+    if (sdcWrite(&SD_DRIVER, block * c->block_size + off, buffer, size) != HAL_SUCCESS) {
+        return LFS_ERR_IO;
+    }
+    
+    if (sdcDisconnect(&SD_DRIVER) != HAL_SUCCESS) {
+        return LFS_ERR_IO;   
+    }
 
-    return ret ? -1 : 0;
+    return 0;
 }
 
 int fs_device_erase(const struct lfs_config *c, lfs_block_t block) {
     fs_dprintf("erase\n");
 
-    bool ret = sdcConnect(&SD_DRIVER);
-    ret &= sdcErase(&SD_DRIVER, block * c->block_size, (block + 1) * c->block_size);
-    ret &= sdcDisconnect(&SD_DRIVER);
+    if (sdcConnect(&SD_DRIVER) != HAL_SUCCESS) {
+        return LFS_ERR_IO;
+    }
 
-    return ret ? -1 : 0;
+    if (sdcErase(&SD_DRIVER, block * c->block_size, (block + 1) * c->block_size) != HAL_SUCCESS) {
+        return LFS_ERR_IO;
+    }
+    
+    if (sdcDisconnect(&SD_DRIVER) != HAL_SUCCESS) {
+        return LFS_ERR_IO;   
+    }
+    
+    return 0;
 }
 
 int fs_device_sync(const struct lfs_config *c) {
@@ -70,7 +91,7 @@ const struct lfs_config lfs_cfg = {
     .read_size      = MMCSD_BLOCK_SIZE,
     .prog_size      = MMCSD_BLOCK_SIZE,
     .block_size     = MMCSD_BLOCK_SIZE,
-    .block_count    = (2 * 32 * 1024), // 2 * 32 * 1024 * 512 bytes == 32MB 
+    .block_count    = (2 * 32 * 1024), // 2 * 32 * 1024 (* 512 bytes, aka MMCSD_BLOCK_SIZE) == 32MB
     .block_cycles   = 10,
     .cache_size     = MMCSD_BLOCK_SIZE,
     .lookahead_size = MMCSD_BLOCK_SIZE,

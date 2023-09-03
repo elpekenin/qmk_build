@@ -6,47 +6,54 @@
 #include "placeholders.h"
 #include "user_layers.h"
 
+void render_rst_layer(void) {
+    rgb_matrix_set_color_all(RGB_OFF);
+
+    for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+        for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+            uint8_t index = g_led_config.matrix_co[row][col];
+
+            switch (keymap_key_to_keycode(_RST, (keypos_t){col,row})) {
+                case QK_BOOT:
+                    rgb_matrix_set_color(index, RGB_RED);
+                    break;
+
+                case QK_RBT:
+                    rgb_matrix_set_color(index, RGB_BLUE);
+                    break;
+
+                case EE_CLR:
+                    rgb_matrix_set_color(index, RGB_ORANGE);
+                    break;
+
+                case DB_TOGG:
+                    rgb_matrix_set_color(
+                        index,
+                        RGB_MATRIX_MAXIMUM_BRIGHTNESS,
+                        RGB_MATRIX_MAXIMUM_BRIGHTNESS,
+                        RGB_MATRIX_MAXIMUM_BRIGHTNESS
+                    );
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 bool rgb_matrix_indicators_user(void) {
     if (!rgb_matrix_indicators_keymap()) {
         return false;
     }
 
-    uint8_t layer = get_highest_layer(layer_state);
+    switch (get_highest_layer(layer_state)) {
+        case _RST:
+            render_rst_layer();
+            break;
 
-    if (layer == _RST) {
-        rgb_matrix_set_color_all(RGB_OFF);
-
-        for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
-            for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
-                uint8_t index = g_led_config.matrix_co[row][col];
-
-                switch (keymap_key_to_keycode(layer, (keypos_t){col,row})) {
-                    case QK_BOOT:
-                        rgb_matrix_set_color(index, RGB_RED);
-                        break;
-
-                    case QK_RBT:
-                        rgb_matrix_set_color(index, RGB_BLUE);
-                        break;
-
-                    case EE_CLR:
-                        rgb_matrix_set_color(index, RGB_ORANGE);
-                        break;
-
-                    case DB_TOGG:
-                        rgb_matrix_set_color(
-                            index,
-                            RGB_MATRIX_MAXIMUM_BRIGHTNESS,
-                            RGB_MATRIX_MAXIMUM_BRIGHTNESS,
-                            RGB_MATRIX_MAXIMUM_BRIGHTNESS
-                        );
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-        }
+        default:
+            break;
     }
 
     return true;

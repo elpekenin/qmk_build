@@ -12,7 +12,7 @@
 #endif // !defined(LOG_N_LINES)
 
 #if !defined(LOG_N_CHARS)
-#    define LOG_N_CHARS 60
+#    define LOG_N_CHARS 70
 #endif // !defined(LOG_N_CHARS)
 
 #undef QUANTUM_PAINTER_CONCURRENT_SCROLLING_TEXTS

@@ -1,5 +1,6 @@
 ONE_HAND ?= no
 ifeq ($(strip $(ONE_HAND)), yes)
+    RGB_MATRIX_CUSTOM_USER = yes
     OPT_DEFS += -DONE_HAND_ENABLE
 endif
 

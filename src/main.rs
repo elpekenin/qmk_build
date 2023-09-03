@@ -100,13 +100,19 @@ impl BuildConfig {
         let prev_keyboard = self.set_config("user.keyboard", &self.build_file.keyboard);
         let prev_keymap = self.set_config("user.keymap", &self.build_file.keymap);
 
+        info!(
+            "Compiling <blue>{:?}</> <green>:</> <blue>{:?}</>",
+            self.build_file.keyboard.clone().unwrap_or(prev_keyboard.clone().unwrap_or_default()),
+            self.build_file.keymap.clone().unwrap_or(prev_keymap.clone().unwrap_or_default())
+        );
+
         // compile
         let _ = self.git_repo.run("qmk clean -a", true);
         let _ = self.git_repo.run("qmk compile", true);
 
         // restore
         let _ = self.set_config("user.keyboard", &prev_keyboard);
-        let _ = self.set_config("user.keymap", &prev_keymap); 
+        let _ = self.set_config("user.keymap", &prev_keymap);
     }
 }
 
@@ -127,7 +133,6 @@ fn main() {
 
     // Compile (if asked)
     if config.build_file.default_compilation {
-        info!("Compiling");
         config.default_compilation();
     }
 

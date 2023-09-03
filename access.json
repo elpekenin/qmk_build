@@ -64,5 +64,11 @@
             "command": "keyboards/elpekenin/access/compile",
             "at": "$QMK_BUILD"
         }
+    ],
+    "post_compilation": [
+        {
+            "operation": "exec",
+            "command": "cp binaries/* /mnt/d"
+        }
     ]
 }
