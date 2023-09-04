@@ -79,12 +79,15 @@ uint32_t deferred_init(uint32_t trigger_time, void *cb_arg) {
 #    if defined(INIT_EE_HANDS_LEFT)
     il91874 = qp_il91874_make_spi_device(_IL91874_WIDTH, _IL91874_HEIGHT, IL91874_CS_PIN, SCREENS_DC_PIN, IL91874_RST_PIN, SCREENS_SPI_DIV, SCREENS_SPI_MODE, (void *)il91874_buffer);
     ret &= qp_init(il91874, IL91874_ROTATION);
+    ret &= qp_power(il91874, true);
 #    else // --------------------  Right half --------------------
     ili9163 = qp_ili9163_make_spi_device(_ILI9163_WIDTH, _ILI9163_HEIGHT, ILI9163_CS_PIN, SCREENS_DC_PIN, ILI9163_RST_PIN, SCREENS_SPI_DIV, SCREENS_SPI_MODE);
     ret &= qp_init(ili9163, ILI9163_ROTATION);
+    ret &= qp_power(ili9163, true);
 
     ili9341 = qp_ili9341_make_spi_device(_ILI9341_WIDTH, _ILI9341_HEIGHT, ILI9341_CS_PIN, SCREENS_DC_PIN, ILI9341_RST_PIN, SCREENS_SPI_DIV, SCREENS_SPI_MODE);
     ret &= qp_init(ili9341, ILI9341_ROTATION);
+    ret &= qp_power(ili9341, true);
 
     qp_rect(ili9163, 0, 0, ILI9163_WIDTH, ILI9163_HEIGHT, HSV_BLACK, true);
     qp_rect(ili9341, 0, 0, ILI9341_WIDTH, ILI9341_HEIGHT, HSV_BLACK, true);

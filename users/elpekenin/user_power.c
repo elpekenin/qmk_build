@@ -8,10 +8,24 @@
 #include "placeholders.h"
 #include "user_xap.h"
 
+#if defined (RGB_MATRIX_ENABLE)
+#    include "user_rgb_functions.h"
+#endif // defined (RGB_MATRIX_ENABLE)
+
+#if defined(SPLIT_KEYBOARD)
+#    include "transactions.h"
+#endif // defined(SPLIT_KEYBOARD)
+
 bool shutdown_user(bool jump_to_bootloader) {
     if (!shutdown_keymap(jump_to_bootloader)) {
         return false;
     }
+
+#if defined(SPLIT_KEYBOARD)
+    if (is_keyboard_master()) {
+        transaction_rpc_send(RPC_ID_USER_SHUTDOWN, sizeof(jump_to_bootloader), &jump_to_bootloader);
+    }
+#endif // defined(SPLIT_KEYBOARD)
 
 #if defined(QUANTUM_PAINTER_ENABLE)
     for (uint8_t i = 0; i < QUANTUM_PAINTER_NUM_DISPLAYS; ++i) {
@@ -20,19 +34,7 @@ bool shutdown_user(bool jump_to_bootloader) {
 #endif // defined(QUANTUM_PAINTER_ENABLE)
 
 #if defined(RGB_MATRIX_ENABLE)
-    if (jump_to_bootloader) {
-        // off for bootlaoder
-        rgb_matrix_set_color_all(RGB_OFF);
-    } else {
-        // red for reboot
-        rgb_matrix_set_color_all(RGB_MATRIX_MAXIMUM_BRIGHTNESS, 0, 0);
-    }
-
-    // force flushing -- otherwise will never happen
-    void rgb_matrix_update_pwm_buffers(void);
-    rgb_matrix_update_pwm_buffers();
-
-    wait_ms(150);
+    rgb_shutdown(jump_to_bootloader);
 #endif // RGB_MATRIX_ENABLE
 
 #if defined(QP_XAP_ENABLE)

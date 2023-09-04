@@ -18,10 +18,6 @@ bool led_update_keymap(led_t led_state);
 
 bool process_record_keymap(uint16_t keycode, keyrecord_t *record);
 
-#if defined(RGB_MATRIX_ENABLE)
-bool rgb_matrix_indicators_keymap(void);
-#endif // defined(RGB_MATRIX_ENABLE)
-
 bool shutdown_keymap(bool jump_to_bootloader);
 
 void suspend_power_down_keymap(void);

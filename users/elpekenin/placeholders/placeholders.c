@@ -16,10 +16,6 @@ WEAK bool led_update_keymap(led_t led_state) { return true; }
 
 WEAK bool process_record_keymap(uint16_t keycode, keyrecord_t *record) { return true; }
 
-#if defined(RGB_MATRIX_ENABLE)
-WEAK bool rgb_matrix_indicators_keymap(void) { return true; }
-#endif // defined(RGB_MATRIX_ENABLE)
-
 WEAK bool shutdown_keymap(bool jump_to_bootloader) { return true; }
 
 WEAK void suspend_power_down_keymap(void) { }
