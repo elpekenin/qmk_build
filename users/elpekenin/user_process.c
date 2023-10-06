@@ -10,6 +10,10 @@
 #include "user_keycodes.h"
 #include "user_xap.h"
 
+#if defined(KEYLOG_ENABLE)
+#    include "user_keylog.h"
+#endif // defined(KEYLOG_ENABLE)
+
 #if defined(AUTOCORRECT_ENABLE)
 bool apply_autocorrect(uint8_t backspaces, const char *str, char *typo, char *correct) {
     printf("'%s' - '%s'\n", typo, correct);

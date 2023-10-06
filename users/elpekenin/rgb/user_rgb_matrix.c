@@ -24,7 +24,7 @@ static inline RGB get_color(uint8_t layer_num, uint16_t keycode) {
         keycode_color_map_t map = layer_mappings[layer_num][i];
 
         if (!map.keycode) {
-            goto exit;
+            break;
         }
 
         if (map.keycode == keycode) {
@@ -32,7 +32,6 @@ static inline RGB get_color(uint8_t layer_num, uint16_t keycode) {
         }
     }
 
-exit:
     return (RGB){RGB_OFF};
 }
 

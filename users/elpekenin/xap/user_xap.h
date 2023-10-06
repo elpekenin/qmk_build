@@ -75,15 +75,10 @@ typedef struct {
 
 typedef struct {
     _keyevent_msg_t base;
-#if defined(KEYLOG_ENABLE)
     char            str[_MAX_STR_LEN(_keyevent_msg_t)];
     uint8_t         null;
-#endif // defined(KEYLOG_ENABLE)
 } PACKED keyevent_msg_t;
-
-#if defined(KEYLOG_ENABLE)
 _Static_assert(sizeof(keyevent_msg_t) == MAX_PAYLOAD, "wrong size for keyevent_msg_t");
-#endif // defined(KEYLOG_ENABLE)
 
 
 void xap_keyevent(uint16_t keycode, keyrecord_t *record);

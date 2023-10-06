@@ -4,6 +4,7 @@
 #pragma once
 
 #include QMK_KEYBOARD_H
+
 #include "user_layers.h"
 #include "keymap_introspection.h"
 
@@ -14,13 +15,6 @@
 extern char keylog[KEYLOG_SIZE + 1];
 
 extern bool qp_log_redraw;
-
-char *get_keycode_str_at(uint8_t layer_num, uint8_t row, uint8_t column);
-
-bool index_to_row_col(uint8_t index, uint8_t *row, uint8_t *col);
-bool row_col_to_index(uint8_t row, uint8_t col, uint8_t *index);
-
-uint8_t number_of_keys(void);
 
 void keylog_process(uint16_t keycode, keyrecord_t *record);
 

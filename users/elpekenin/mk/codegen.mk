@@ -12,6 +12,10 @@ $(shell $(USER_SCRIPTS)/features.py $(USER_GENERATED))
 SRC += generated_features.c \
        generated_features_draw.c
 
+# keycode_str
+$(shell $(USER_SCRIPTS)/keycode_str.py $(USER_GENERATED) $(KEYMAP_PATH))
+SRC += generated_keycode_str.c
+
 # QP assets
 ifeq ($(strip $(QUANTUM_PAINTER_ENABLE)), yes)
     # not really codegen, but let's convert .png to .qgf here

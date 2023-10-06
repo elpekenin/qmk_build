@@ -40,7 +40,6 @@ haiga->haya
 hechar->echar
 hechado->echado
 hermita->ermita
-interface->interfaz
 interperie->intemperie
 intrumento->instrumento
 jente->gente

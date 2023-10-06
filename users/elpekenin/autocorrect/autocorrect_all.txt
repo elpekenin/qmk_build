@@ -43,7 +43,6 @@ haiga->haya
 hechar->echar
 hechado->echado
 hermita->ermita
-interface->interfaz
 interperie->intemperie
 jente->gente
 kms->km

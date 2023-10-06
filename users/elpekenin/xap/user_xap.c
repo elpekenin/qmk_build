@@ -1,11 +1,11 @@
+// Copyright 2023 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "quantum.h"
 #include "user_utils.h"
 #include "user_xap.h"
 
-// for keycode as str
-#if defined(KEYLOG_ENABLE)
-#    include "user_keylog.h"
-#endif // defined(KEYLOG_ENABLE)
+#include "generated_keycode_str.h"
 
 void xap_screen_pressed(uint8_t screen_id, touch_report_t report) {
     screen_pressed_msg_t msg = {
@@ -47,9 +47,7 @@ void xap_keyevent(uint16_t keycode, keyrecord_t *record) {
         .base.mods = MODIFIERS()
     };
 
-#if defined(KEYLOG_ENABLE)
     strcpy(msg.str, get_keycode_str_at(msg.base.layer, msg.base.row, msg.base.col));
-#endif // defined(KEYLOG_ENABLE)
 
     xap_broadcast_user(&msg, sizeof(msg));
 }

@@ -4,146 +4,13 @@
 #include "user_keylog.h"
 #include "user_utils.h"
 
-// ========================
-// *** Number of layers ***
-// ========================
-#undef __DUMMY_LAYER
-#define __DUMMY_LAYER(...)
-#undef LAYER
-#define LAYER(layer_name, ...) __##layer_name,
-enum {
-#include KEYMAP_LAYERS_H
-    __N_LAYERS
-};
+#include "generated_keycode_str.h"
+
 
 // ==========================
 // *** Internal variables ***
 // ==========================
-char *keycode_names[__N_LAYERS][MATRIX_ROWS][MATRIX_COLS];
 char keylog[KEYLOG_SIZE + 1]; // extra space for terminator
-
-// =========================
-// *** row/col -> string ***
-// =========================
-#undef __DUMMY_LAYER
-#define __DUMMY_LAYER(...)
-#undef LAYER
-#define LAYER(layer_name, ...) [layer_name] = "_" #__VA_ARGS__,
-char *keycode_names_raw[] = {
-#include KEYMAP_LAYERS_H
-};
-
-// not public, will get called upon asking for keycodes
-// thus not taking any RAM if code didnt ask for the strings
-void populate_keycode_names(void) {
-    // we only want to do this once
-    static bool inited = false;
-    if (inited)
-        return;
-    inited = true;
-
-    // actual implementation
-    for (uint8_t layer = 0; layer < __N_LAYERS; ++layer) {
-        // copy the string
-        uint16_t len  = strlen(keycode_names_raw[layer]) + 1;
-        char    *copy = malloc(len);
-        memcpy(copy, keycode_names_raw[layer], len);
-
-        // location
-        uint8_t index = 0;
-        uint8_t row   = 0;
-        uint8_t col   = 0;
-
-        // get first ocurrence
-        const char *delim = ",";
-        char *token = strtok(copy, delim);
-
-        // get the rest
-        while (token != NULL) {
-            // convert conter into row/col position, LAYOUT aware
-            index_to_row_col(index, &row, &col);
-
-            if (keycode_at_keymap_location(0, row, col) != KC_NO) {
-                // copy into array, would need +1 for '\0' and - 1 to remove space v
-                //                                                           (KC_A, KC_B)
-                // note that stringifying VA_ARGS makes all keycodes to be 1-space away, regardless of input "shape"
-                uint8_t len     = strlen(token);
-                char *allocated = malloc(len);
-
-                memcpy(allocated, token + 1, len);
-                keycode_names[layer][row][col] = allocated;
-            }
-
-            // advance
-            index++;
-            token = strtok(NULL, delim);
-        }
-
-        free(copy);
-    }
-}
-
-char *get_keycode_str_at(uint8_t layer_num, uint8_t row, uint8_t column) {
-    populate_keycode_names();
-    return keycode_names[layer_num][row][column];
-}
-
-// =========================
-// *** Index <-> row/col ***
-// =========================
-#undef __DUMMY_LAYER
-#define __DUMMY_LAYER(...) LAYOUT(__VA_ARGS__)
-#undef LAYER
-#define LAYER(...)
-uint8_t col_row_to_index_mapping[MATRIX_ROWS][MATRIX_COLS] =
-#include KEYMAP_LAYERS_H
-;
-
-bool index_to_row_col(uint8_t index, uint8_t *row, uint8_t *col) {
-    // we need this correction as the counting on map is not 0-based
-    // it is 1-based and 0 represents no key on the position
-    uint8_t corrected_index = index + 1;
-
-    for (uint8_t i = 0; i < MATRIX_ROWS; ++i) {
-        for (uint8_t j = 0; j < MATRIX_COLS; ++j) {
-            if (col_row_to_index_mapping[i][j] == corrected_index) {
-                *row = i;
-                *col = j;
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-bool row_col_to_index(uint8_t row, uint8_t col, uint8_t *index) {
-    uint8_t i = col_row_to_index_mapping[row][col];
-
-    if (i != KC_NO) {
-        *index = i - 1;
-    }
-
-    return i != KC_NO;
-}
-
-// ======================
-// *** Number of keys ***
-// ======================
-#undef LAYER
-#define LAYER(...)
-#undef __DUMMY_LAYER
-#define __DUMMY_LAYER(...) __VA_ARGS__
-uint8_t __indexes[] = {
-#include KEYMAP_LAYERS_H
-};
-enum {
-    __N_KEYS = ARRAY_SIZE(__indexes)
-};
-
-uint8_t number_of_keys(void) {
-    return __N_KEYS;
-}
 
 // ==========================
 // *** Formatting helpers ***
@@ -345,7 +212,7 @@ void keylog_shift_left(uint8_t len) {
     memset(keylog, ' ', counter);
 }
 
-void keylog_append(char *str) {
+void keylog_append(const char *str) {
     uint8_t len = strlen(str);
 
     keylog_shift_left(len);
@@ -384,10 +251,10 @@ void keylog_process(uint16_t keycode, keyrecord_t *record) {
     }
 
     // get the string representation of the pressed key
-    uint8_t layer_num = get_highest_layer(layer_state);
-    uint8_t row       = record->event.key.row;
-    uint8_t column    = record->event.key.col;
-    char *  str       = get_keycode_str_at(layer_num, row, column);
+    uint8_t     layer_num = get_highest_layer(layer_state);
+    uint8_t     row       = record->event.key.row;
+    uint8_t     column    = record->event.key.col;
+    const char *str       = get_keycode_str_at(layer_num, row, column);
 
     uint8_t mods = MODIFIERS();
     bool    ctrl = mods & MOD_MASK_CTRL;
@@ -406,10 +273,10 @@ void keylog_process(uint16_t keycode, keyrecord_t *record) {
     }
 
     // convert string into symbols
-    keycode_repr(&str);
+    keycode_repr((char **)&str);
 
     // casing is separate so that drawing keycodes on screen is always uppercase
-    apply_casing(&str);
+    apply_casing((char **)&str);
 
     keylog_append(str);
 }

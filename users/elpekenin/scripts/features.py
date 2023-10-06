@@ -4,6 +4,11 @@
 # Copyright 2023 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+Define a new struct type which holds whether selected features are enabled or not.
+Also provides a function to draw the state on a QP screen.
+"""
+
 import sys
 from pathlib import Path
 from typing import Callable
@@ -44,7 +49,7 @@ OUTPUT_NAME = "generated_features"
 MAX_WIDTH = max(map(len, FEATURES))
 
 # ===== Templates
-H_FILE = "\n".join([
+H_FILE = lines(
     H_HEADER,
     "",
     "#include <stdbool.h>",
@@ -59,9 +64,9 @@ H_FILE = "\n".join([
     "",
     "enabled_features_t get_enabled_features(void);",
     ""
-])
+)
 
-C_FILE = "\n".join([
+C_FILE = lines(
     C_HEADER,
     "",
     f'#include "{OUTPUT_NAME}.h"',
@@ -75,9 +80,9 @@ C_FILE = "\n".join([
     "    return features;",
     "}}",
     ""
-])
+)
 
-DRAW_FILE = "\n".join([
+DRAW_FILE = lines(
     C_HEADER,
     "",
     '#include "color.h"',
@@ -101,7 +106,7 @@ DRAW_FILE = "\n".join([
     "",
         "{generated_code}"  # no comma here intentionally
     "}}"
-])
+)
 
 
 def _get_type() -> str:
@@ -125,12 +130,12 @@ def _h_generator(feature: str) -> str:
 
 
 def _c_generator(feature: str) -> str:
-    return "\n".join([
+    return lines(
         f"    #if defined({feature.upper()}_ENABLE)",
         f"        features.{feature.lower()} = true;",
         f"    #endif // defined({feature.upper()}_ENABLE)",
         ""
-    ])
+    )
 
 
 def _draw_generator(feature: str) -> str:
@@ -138,7 +143,7 @@ def _draw_generator(feature: str) -> str:
     short_name = SHORT_NAMES.get(feature, feature)
     name = short_name.replace("_", " ").title()
 
-    return "\n".join([
+    return lines(
         f'    qp_drawtext_recolor(device, x, y, font, features.{feature.lower()} ? "{name}: On " : "{name}: Off", {TEXT_COLOR}, {BACKGROUND_COLOR});',
         #                         intentional space so it overwrites previous "Off"         ^^^
         "    y += font_height;",
@@ -155,7 +160,7 @@ def _draw_generator(feature: str) -> str:
         "        }",
         "    }",
         "",
-    ])
+    )
 
 
 if __name__ == "__main__":

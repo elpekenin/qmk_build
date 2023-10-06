@@ -17,10 +17,9 @@
             "dest": "users/elpekenin"
         },
         {
-            // shutdown hooks
+            // ellipse
             "operation": "pr",
-            "id": 21060
-
+            "id": 19005
         },
         {
             // tz's OLED
@@ -31,6 +30,11 @@
             // 3color eink
             "operation": "pr",
             "id": 20032
+        },
+        {
+            // shutdown hooks
+            "operation": "pr",
+            "id": 21060
         },
         {
             "operation": "checkout",
@@ -58,6 +62,10 @@
         {
             "operation": "diff",
             "file": "print_no_console.diff"
+        },
+        {
+            "operation": "diff",
+            "file": "xap_keytester.diff"
         },
         {
             "operation": "exec",

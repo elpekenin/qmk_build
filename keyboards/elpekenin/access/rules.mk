@@ -16,3 +16,4 @@ CUSTOM_EEPROM = yes
 TOUCH_SCREEN  = no
 ONE_HAND      = no
 SIPO_PINS     = yes
+KEYLOG_ENABLE = no

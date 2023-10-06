@@ -4,6 +4,11 @@
 # Copyright 2023 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+Automatically include on your compilation all QP assets on relevant paths.
+Also provides a function to load them into memory at once.
+"""
+
 import sys
 from functools import partial
 from pathlib import Path
@@ -13,13 +18,13 @@ from scripts import *
 
 OUTPUT_NAME = "generated_qp_resources"
 
-H_FILE = "\n".join([
+H_FILE = lines(
     H_HEADER,
     "",
     "{generated_code}"
-])
+)
 
-C_FILE = "\n".join([
+C_FILE = lines(
     C_HEADER,
     "",
     f'#include "graphics.h"',
@@ -27,13 +32,13 @@ C_FILE = "\n".join([
     "void load_qp_resources(void) {{",
         "{generated_code}"  # no comma here intentionally
     "}}"
-])
+)
 
-MK_FILE = "\n".join([
+MK_FILE = lines(
     MK_HEADER,
     "",
     "{generated_code}"
-])
+)
 
 AssetsDictT = dict[str, list[Path]]
 
@@ -65,14 +70,14 @@ def __for_all_assets(func: Callable, assets: AssetsDictT) -> str:
 
 
 def _h_generator(key: str, paths: list[Path]) -> str:
-    return "\n".join([
+    return lines(
         f"// {key}",
         "\n".join(
             f'#include "{path.name}"'
             for path in paths
         ),
         ""
-    ])
+    )
 
 
 def _c_generator(key: str, paths: list[Path]) -> str:
@@ -87,30 +92,30 @@ def _c_generator(key: str, paths: list[Path]) -> str:
 
         return f"{key}_{name}"
 
-    return "\n".join([
+    return lines(
         f"    // {key}",
         "\n".join(
             f"    {macro}({_name_generator(key, path)});"
             for path in paths
         ),
         ""
-    ])
+    )
 
 def _mk_generator(key: str, paths: list[Path]) -> str:
-    return "\n".join([
+    return lines(
         f"# {key}",
         "\n".join(
             f"SRC += {path}".replace(".h", ".c")
             for path in paths
         ),
         ""
-    ])
+    )
 
 
 if __name__ == "__main__":
     # -- Handle args
     if len(sys.argv) < 3: # executable, output path, paths
-        print(f"{CLI_ERROR} {current_filename(__file__)} paths")
+        print(f"{CLI_ERROR} {current_filename(__file__)} <paths...>")
         exit(1)
 
     output_dir = Path(sys.argv[1])
