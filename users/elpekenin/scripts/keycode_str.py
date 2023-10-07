@@ -106,7 +106,7 @@ def _extract_keycodes(clean_file: str) -> list[str]:
         elif char == ")":
             parens -= 1
 
-        elif parens:
+        if parens and not (parens == 1 and char == "("):
             accumulated += char
 
         if parens == 0:  # outsize of layout macro
@@ -136,8 +136,9 @@ def _keycode_generator(layers: list[str], layer_names: list[str]) -> str:
 
     strings = f"static const char* {KEYCODE_ARRAY}[][MATRIX_ROWS][MATRIX_COLS] = {{\n"
     for name, layer in zip(layer_names, layers):
+        name = f"[{name}]".rjust(15)
         names = ", ".join(_string(keycode) for keycode in layer.split(","))
-        strings += f"    [{name}] = LAYOUT({names}),\n"
+        strings += f"{name} = LAYOUT({names}),\n"
     strings += "};"
 
     return strings
