@@ -279,9 +279,9 @@ void housekeeping_qp(uint32_t now) {
 
     // Set things up
     painter_device_t device = qp_log_target_device;
-    uint16_t         width;
-    uint16_t         height;
-    qp_get_geometry(device, &width, &height, NULL, NULL, NULL);
+    uint16_t width  = qp_get_width(device);
+    uint16_t height = qp_get_height(device);
+    (void)height;
 
     painter_font_handle_t font = qp_fonts[1];
 

@@ -18,9 +18,10 @@ SRC += generated_keycode_str.c
 
 # QP assets
 ifeq ($(strip $(QUANTUM_PAINTER_ENABLE)), yes)
-    # not really codegen, but let's convert .png to .qgf here
+    # not really codegen, but let's convert images to .qgf here
+    # it will iterate all files on every folder under $(USER_PATH)/painter/images
     QGF_FORMAT ?= rgb565
-    $(shell $(USER_PATH)/painter/images/png/png2qgf $(QGF_FORMAT))
+    $(shell $(USER_PATH)/painter/images/img2qgf $(QGF_FORMAT))
 
     # actual codegen
     QP_DIRS := $(KEYBOARD_PATHS) $(KEYMAP_PATH) $(USER_PATH)

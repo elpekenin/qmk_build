@@ -28,6 +28,10 @@ void _load_image(const uint8_t *img);
 #define load_image(x) qp_dprintf("Loading '" XSTR(x)); _load_image(x)
 void load_qp_resources(void);
 
+uint8_t num_displays(void);
+uint8_t num_imgs(void);
+uint8_t num_fonts(void);
+
 // ======
 // States
 typedef struct scrolling_text_state_t {
