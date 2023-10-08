@@ -60,8 +60,6 @@ deferred_token draw_scrolling_text_recolor(painter_device_t device, uint16_t x, 
 void stop_scrolling_text(deferred_token scrolling_token);
 void extend_scrolling_text(deferred_token scrolling_token, const char *str);
 
-void draw_layer(uint8_t layer_num);
-
 // Target device
 extern painter_device_t qp_log_target_device;
 void housekeeping_qp(uint32_t now);
