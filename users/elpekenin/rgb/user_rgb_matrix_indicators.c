@@ -35,7 +35,6 @@ __attribute__((unused)) static bool keycode_callback(uint8_t layer_num, uint16_t
     return keycode == indicator->keycode;
 }
 
-
 static bool keycode_in_layer_callback(uint8_t layer_num, uint16_t keycode, indicator_t *indicator) {
     return (keycode == indicator->keycode) && (layer_num == indicator->layer_num);
 }
@@ -48,22 +47,30 @@ static bool keycode_and_modifier_callback(uint8_t layer_num, uint16_t keycode, i
 // * Macros *
 // **********
 
+// this crap is needed for RGB color macros to work nicely...
+// relying on position aka: (rgb_led_t){_col} doesnt work
+#define _RGB(_r, _g, _b) (rgb_led_t){ \
+    .r = _r, \
+    .g = _g, \
+    .b = _b, \
+}
+
 #define KC(_kc, _col) { \
     .keycode = _kc, \
-    .color = (rgb_led_t){_col}, \
+    .color = _RGB(_col), \
     .check = &keycode_callback, \
 }
 
 #define KC_LAYER(_kc, _col, _layer) { \
     .keycode = _kc, \
-    .color = (rgb_led_t){_col}, \
+    .color = _RGB(_col), \
     .check = &keycode_in_layer_callback, \
     .layer_num = _layer, \
 }
 
 #define KC_MOD(_kc, _col, _mod_b) { \
     .keycode = _kc, \
-    .color = (rgb_led_t){_col}, \
+    .color = _RGB(_col), \
     .check = &keycode_and_modifier_callback, \
     .mod_bitmask = _mod_b, \
 }
