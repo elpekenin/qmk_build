@@ -7,6 +7,7 @@
 #include "rgb_matrix.h"
 
 #include "elpekenin.h" // layers names and custom keycodes
+#include "user_utils.h"
 
 #define MAX_WHITE RGB_MATRIX_MAXIMUM_BRIGHTNESS, RGB_MATRIX_MAXIMUM_BRIGHTNESS, RGB_MATRIX_MAXIMUM_BRIGHTNESS
 
@@ -15,32 +16,59 @@
 // *********
 
 typedef struct indicator_t indicator_t;
-typedef bool(* indicator_fn_t)(uint8_t layer_num, uint16_t keycode, indicator_t *indicator);
+
+// arguments passed from rgb_matrix_indicators to indicators_fn_t
+typedef struct {
+    uint8_t  layer;
+    uint8_t  mods;
+    uint16_t keycode;
+} indicator_fn_args_t;
+
+typedef bool(* indicator_fn_t)(indicator_t *indicator, indicator_fn_args_t *args);
+
+// indicator specification: condition when it has to be drawn + color
 struct indicator_t {
-    uint16_t       keycode;
+    // common config
     rgb_led_t      color;
     indicator_fn_t check;
 
-    union {
-        uint8_t mod_bitmask;
-        uint8_t layer_num;
-    };
+    // conditions
+    uint8_t  mods;
+    uint8_t  layer;
+    uint16_t keycode;
 };
 
 // **********
 // * Checks *
 // **********
 
-__attribute__((unused)) static bool keycode_callback(uint8_t layer_num, uint16_t keycode, indicator_t *indicator) {
-    return keycode == indicator->keycode;
+#define __keycode() (args->keycode == indicator->keycode)
+#define __layer()   (args->layer == indicator->layer)
+#define __mods()    (args->mods & indicator->mods)
+
+// draw the given keycode
+UNUSED static bool keycode_callback(indicator_t *indicator, indicator_fn_args_t *args) {
+    return __keycode();
 }
 
-static bool keycode_in_layer_callback(uint8_t layer_num, uint16_t keycode, indicator_t *indicator) {
-    return (keycode == indicator->keycode) && (layer_num == indicator->layer_num);
+// draw every key while on the given layer
+UNUSED static bool layer_callback(indicator_t *indicator, indicator_fn_args_t *args) {
+    return __layer();
 }
 
-static bool keycode_and_modifier_callback(uint8_t layer_num, uint16_t keycode, indicator_t *indicator) {
-    return (keycode == indicator->keycode) && (get_mods() & indicator->mod_bitmask);
+// draw the given keycode while on the given layer
+UNUSED static bool keycode_and_layer_callback(indicator_t *indicator, indicator_fn_args_t *args) {
+    return __keycode() && __layer();
+}
+
+// draw every keycode configured (i.e. not KC_NO nor KC_TRNS) on the given layer
+UNUSED static bool layer_and_configured_callback(indicator_t *indicator, indicator_fn_args_t *args) {
+    return __layer() && indicator->keycode > KC_TRNS;
+}
+
+// draw the given keycode if given mods are set (i.e. display shortcuts)
+UNUSED static bool keycode_and_mods_callback(indicator_t *indicator, indicator_fn_args_t *args) {
+    return __keycode() && __mods();
 }
 
 // **********
@@ -61,18 +89,30 @@ static bool keycode_and_modifier_callback(uint8_t layer_num, uint16_t keycode, i
     .check = &keycode_callback, \
 }
 
-#define KC_LAYER(_kc, _col, _layer) { \
-    .keycode = _kc, \
+#define LAYER(_layer, _col) { \
     .color = _RGB(_col), \
-    .check = &keycode_in_layer_callback, \
-    .layer_num = _layer, \
+    .check = &layer_callback, \
+    .layer = _layer, \
 }
 
-#define KC_MOD(_kc, _col, _mod_b) { \
+#define KC_LAYER(_kc, _layer, _col) { \
     .keycode = _kc, \
     .color = _RGB(_col), \
-    .check = &keycode_and_modifier_callback, \
-    .mod_bitmask = _mod_b, \
+    .check = &keycode_and_layer_callback, \
+    .layer = _layer, \
+}
+
+#define NO_TRNS(_layer, _col) { \
+    .color = _RGB(_col), \
+    .check = &layer_and_configured_callback, \
+    .layer = _layer, \
+}
+
+#define KC_MOD(_kc, _mods, _col) { \
+    .keycode = _kc, \
+    .color = _RGB(_col), \
+    .check = &keycode_and_mods_callback, \
+    .mods = _mods, \
 }
 
 // ***************
@@ -80,12 +120,11 @@ static bool keycode_and_modifier_callback(uint8_t layer_num, uint16_t keycode, i
 // ***************
 
 static const indicator_t indicators[] = {
-    KC_LAYER(QK_BOOT, RGB_RED,    _RST),
-    KC_LAYER(QK_RBT,  RGB_GREEN,  _RST),
-    KC_LAYER(EE_CLR,  RGB_YELLOW, _RST),
-    KC_LAYER(DB_TOGG, MAX_WHITE,  _RST),
-
-    KC_MOD(KC_C, RGB_RED, MOD_BIT(KC_LCTL)),
+    LAYER(_RST, RGB_OFF),
+    KC_LAYER(QK_BOOT, _RST, RGB_RED),
+    KC_LAYER(QK_RBT,  _RST, RGB_GREEN),
+    KC_LAYER(EE_CLR,  _RST, RGB_YELLOW),
+    KC_LAYER(DB_TOGG, _RST, MAX_WHITE),
 };
 
 // ************
@@ -93,7 +132,13 @@ static const indicator_t indicators[] = {
 // ************
 
 bool draw_indicators(uint8_t led_min, uint8_t led_max) {
-    uint8_t layer_num = get_highest_layer(layer_state);
+    uint8_t mods  = get_mods();
+    uint8_t layer = get_highest_layer(layer_state);
+
+    indicator_fn_args_t args = {
+        .mods = mods,
+        .layer = layer,
+    };
 
     // iterate all keys
     for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
@@ -105,14 +150,14 @@ bool draw_indicators(uint8_t led_min, uint8_t led_max) {
                 continue;
             }
 
-            uint16_t keycode = keymap_key_to_keycode(layer_num, (keypos_t){col,row});
+            args.keycode = keymap_key_to_keycode(layer, (keypos_t){col,row});
 
             // iterate all indicators
             for (uint8_t i = 0; i < ARRAY_SIZE(indicators); ++i) {
                 indicator_t indicator = indicators[i];
 
                 // if check passed, draw
-                if (indicator.check(layer_num, keycode, &indicator)) {
+                if (indicator.check(&indicator, &args)) {
                     rgb_matrix_set_color(index, indicator.color.r, indicator.color.g, indicator.color.b);
                 }
             }

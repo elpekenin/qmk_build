@@ -16,6 +16,14 @@
 
 #include "color.h" // defines `PACKED`
 
+#if !defined(PACKED)
+#    define PACKED __attribute__((packed))
+#endif
+
+#if !defined(UNUSED)
+#    define UNUSED __attribute__((unused))
+#endif
+
 #if !defined(WEAK)
 #    define WEAK __attribute__((weak))
 #endif
