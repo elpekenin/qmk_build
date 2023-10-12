@@ -6,11 +6,17 @@
     "path": "$QMK_BUILD",
     "operations": [
         {
+            // qp_inversion
+            "operation": "pr",
+            "id": 22098
+        },
+        {
             "operation": "merge",
             "repo": "https://github.com/tzarc/qmk_firmware",
             "branch": "littlefs-binding"
         },
         {
+            // H7 SPI
             "operation": "pr",
             "id": 21843
         },
@@ -33,22 +39,31 @@
         },
         {
             "operation": "cp",
+            "orig": "misc/fs_lfs_sdmmc_card.c",
+            "dest": "quantum/filesystem"
+        },
+        {
+            "operation": "cp",
             "orig": "keyboards/handwired/onekey/stm32h7/*",
             "dest": "keyboards/handwired/onekey/stm32h7"
         },
         {
             "operation": "cp",
-            "orig": "misc/fs_lfs_sdmmc_card.c",
-            "dest": "quantum/filesystem"
+            "orig": "keymaps/stm32_tests/*",
+            "dest": "keyboards/handwired/onekey/keymaps/stm32_tests"
+        },
+        {
+            "operation": "cp",
+            "orig": "users/elpekenin/painter/fonts/fira_code.qff.*",
+            "dest": "keyboards/handwired/onekey/keymaps/stm32_tests"
         },
         {
             "operation": "diff",
             "file": "sdmmc_fs.diff"
         },
         {
-            "operation": "cp",
-            "orig": "keymaps/stm32_tests/*",
-            "dest": "keyboards/handwired/onekey/keymaps/stm32_tests"
+            "operation": "diff",
+            "file": "h7_ram_ld.diff"
         },
         {
             "operation": "exec",
@@ -59,15 +74,18 @@
     "default_compilation": false,
     "post_compilation": [
         {
+            // debugging config
             "operation": "cp",
             "orig": "misc/launch.json",
             "dest": ".vscode"
         },
+        // {
+        //     // open VSCode on build folder to debug
+        //     "operation": "exec",
+        //     "command": "code $QMK_BUILD"
+        // },
         {
-            "operation": "exec",
-            "command": "code $QMK_BUILD"
-        },
-        {
+            // copy binaries from WSL into Windows
             "operation": "exec",
             "command": "cp binaries/* /mnt/d"
         }
