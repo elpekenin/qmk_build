@@ -18,7 +18,7 @@ pub struct Exec {
 }
 
 impl OperationTrait for Exec {
-    fn apply(&self, _state: &BuildConfig) {
+    fn apply(&self, settings: &build::Settings, repository: &git::Repository) {
         let command = self.command.clone();
         sh::run(command, &self.at, self.strict);
     }

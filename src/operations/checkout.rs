@@ -8,22 +8,16 @@ pub struct Checkout {
 }
 
 impl OperationTrait for Checkout {
-    fn apply(&self,state: &BuildConfig) {
-        state.git_repo.remote_add(&self.repo);
-        state.git_repo.fetch(&self.repo, None);
-        state.git_repo.checkout(
-            &self.repo,
-            &self.branch,
-            Some(&self.files)
-        );
+    fn apply(&self, settings: &build::Settings, repository: &git::Repository) {
+        repository.remote_add(&self.repo);
+        repository.fetch(&self.repo, None);
+        repository.checkout(&self.repo, &self.branch, Some(&self.files));
     }
 
     fn message(&self) -> String {
         format!(
             "Checking out <blue>{:?}</> from <blue>{}</> <green>@</> <blue>{}</>",
-            self.files,
-            self.repo,
-            self.branch
+            self.files, self.repo, self.branch
         )
     }
 }

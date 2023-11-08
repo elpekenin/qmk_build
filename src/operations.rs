@@ -1,8 +1,10 @@
 pub mod prelude {
     #[allow(unused_imports)]
     pub use crate::{
+        build,
+        git,
         logging::{info, log, paris},
-        sh, BuildConfig,
+        sh,
     };
 
     pub use enum_dispatch::enum_dispatch;
@@ -12,7 +14,7 @@ pub mod prelude {
     // common behaviour on all operations
     #[enum_dispatch]
     pub trait OperationTrait {
-        fn apply(&self, state: &BuildConfig);
+        fn apply(&self, settings: &build::Settings, repository: &git::Repository);
         fn message(&self) -> String;
     }
 }

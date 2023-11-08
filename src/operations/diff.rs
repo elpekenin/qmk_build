@@ -8,22 +8,17 @@ fn patch_folder() -> String {
 pub struct Diff {
     #[serde(default = "patch_folder")]
     folder: String, // where the patch file is stored (defaults to "./patches")
-    file: String,  // filename 
+    file: String, // filename
 }
 
 impl OperationTrait for Diff {
-    fn apply(&self,state: &BuildConfig) {
+    fn apply(&self, settings: &build::Settings, repository: &git::Repository) {
         let _ = sh::run(
-            format!(
-                "cp {}/{} {}",
-                self.folder,
-                self.file,
-                state.git_repo.path
-            ),
+            format!("cp {}/{} {}", self.folder, self.file, repository.path),
             ".",
             true,
         );
-        state.git_repo.apply(&self.file);
+        repository.apply(&self.file);
     }
 
     fn message(&self) -> String {

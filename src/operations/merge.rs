@@ -10,12 +10,12 @@ pub struct Merge {
 }
 
 impl OperationTrait for Merge {
-    fn apply(&self,state: &BuildConfig) {
-        state.git_repo.fetch(&self.repo, Some(&self.branch));
-        state.git_repo.merge(
+    fn apply(&self, settings: &build::Settings, repository: &git::Repository) {
+        repository.fetch(&self.repo, Some(&self.branch));
+        repository.merge(
             Some(&self.repo),
             &[self.branch.clone()],
-            self.strategy.clone()
+            self.strategy.clone(),
         );
     }
 

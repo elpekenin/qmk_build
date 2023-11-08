@@ -1,153 +1,118 @@
 use std::process::exit;
 
-mod self_update;
+pub mod build;
 mod cli;
-mod config;
-mod git;
+pub mod git;
 mod logging;
+#[allow(unused_variables)]
 mod operations;
+mod self_update;
 pub mod sh;
 
 use clap::Parser;
-use config::BuildFile;
-use git::Repository;
-use logging::{info, log, paris, error};
+use logging::{log, paris};
 use operations::prelude::OperationTrait;
 
-
-// Pack together any information that operations might need
-pub struct BuildConfig {
-    git_repo: Repository,
-    build_file: BuildFile,
-}
-
-impl BuildConfig {
-    fn new() -> Self {
-        // Parse CLI args
-        let cli_args = cli::Args::parse();
-
-        info!("Welcome to <blue>QMK build (beta)</>");
-
-        // (try) Load build configuration
-        let file = &cli_args.file;
-        let build_file = match BuildFile::load(file) {
-            Ok(config) => {
-                info!("Loaded <blue>{file}</>",);
-                config
-            }
-            Err(e) => {
-                error!(
-                    "Parsing config file (<blue>{file}</>)\n\t<red>{}</>",
-                    e.to_string()
-                );
-                exit(1);
-            }
-        };
-
-        let git_repo = git::Repository::init(
-            &build_file.path,
-            &build_file.repo,
-            &build_file.branch
-        );
-
-        Self {
-            git_repo,
-            build_file,
+fn read_settings(file: &String) -> build::Settings {
+    match build::Settings::load(file) {
+        Ok(config) => {
+            logging::info!("Loaded <blue>{file}</>",);
+            config
         }
-    }
-
-    fn copy_binaries(&self) {
-        // create (if needed) and clear the output directory
-        let binaries = "binaries/";
-        let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
-        let _ = sh::run(format!("rm -f {binaries}/*"), ".", true);
-
-        // copy firmwares into output dir
-        for ext in ["bin", "hex", "uf2"] {
-            let _ = sh::run(
-                format!("cp {}/*.{ext} {binaries}", self.git_repo.path),
-                ".",
-                false,
+        Err(e) => {
+            logging::error!(
+                "Parsing config file (<blue>{file}</>)\n\t<red>{}</>",
+                e.to_string()
             );
+            exit(1);
         }
-
-        info!("Copied into <blue>{binaries}</>");
-    }
-
-    fn set_config(&self, key: impl Into<String>, value: &Option<String>) -> Option<String> {
-        let key = key.into();
-
-        if let Some(value) = value {
-            let stdout = self.git_repo.run(format!("qmk config {key} | cut -d '=' -f2"), true).stdout;
-
-            let prev_value = match String::from_utf8_lossy(&stdout).to_string().as_str() {
-                "None" => None,
-                value => Some(String::from(value)),
-            };
-
-            let _ = self.git_repo.run(format!("qmk config {key}={value}"), true);
-
-            prev_value
-        } else {
-            None
-        }
-    }
-
-    fn default_compilation(&self) {
-        // configure keyboard and keymap
-        let prev_keyboard = self.set_config("user.keyboard", &self.build_file.keyboard);
-        let prev_keymap = self.set_config("user.keymap", &self.build_file.keymap);
-
-        info!(
-            "Compiling <blue>{:?}</> <green>:</> <blue>{:?}</>",
-            self.build_file.keyboard.clone().unwrap_or(prev_keyboard.clone().unwrap_or_default()),
-            self.build_file.keymap.clone().unwrap_or(prev_keymap.clone().unwrap_or_default())
-        );
-
-        // compile
-        let _ = self.git_repo.run("qmk clean -a", true);
-        let _ = self.git_repo.run("qmk compile", true);
-
-        // restore
-        let _ = self.set_config("user.keyboard", &prev_keyboard);
-        let _ = self.set_config("user.keymap", &prev_keymap);
     }
 }
+
+fn copy_binaries(git_repo: &git::Repository) {
+    // create (if needed) and clear the output directory
+    let binaries = "binaries/";
+    let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
+    let _ = sh::run(format!("rm -f {binaries}/*"), ".", true);
+
+    // copy firmwares into output dir
+    for ext in ["bin", "hex", "uf2"] {
+        let _ = sh::run(
+            format!("cp {}/*.{ext} {binaries}", git_repo.path),
+            ".",
+            false,
+        );
+    }
+
+    logging::info!("Copied into <blue>{binaries}</>");
+}
+
+fn default_compilation(settings: &build::Settings, repository: &git::Repository) {
+    logging::info!(
+        "Compiling <blue>{:?}</> <green>:</> <blue>{:?}</>",
+        settings.keyboard,
+        settings.keymap,
+    );
+
+    // setup the command to be run
+    let mut cmd = String::from("qmk compile");
+    if let Some(kb) = &settings.keyboard {
+        cmd.push_str(&format!(" -kb {kb}"));
+    }
+    if let Some(km) = &settings.keymap {
+        cmd.push_str(&format!(" -km {km}"));
+    }
+
+    // compile
+    let _ = repository.run("qmk clean -a", true);
+    let _ = repository.run(cmd, true);
+}
+
 
 // Entrypoint for the app
 fn main() {
     logging::init();
 
+    // parse CLI args
+    let cli_args = cli::Args::parse();
+
+    // recompile the tool if source was changed
     if self_update::detect_changes() {
         self_update::compile();
         log::warn!("Detected changes and re-compiled myself, try building your firmware now");
-        exit(0);
+        exit(0); 
     }
 
-    // Parse CLI args
-    //   - Early exit after handling some flag
-    //   - Read build settings + configure git repo otherwise
-    let config = BuildConfig::new();
+    logging::info!("Welcome to <blue>QMK build (beta)</>");
 
-    // Apply changes listed on the file
-    for operation in &config.build_file.operations {
-        info!("{}", operation.message());
-        operation.apply(&config);
+    // (try) load build configuration
+    let settings = read_settings(&cli_args.file);
+
+    let repository = git::Repository::init(
+        &settings.path, 
+        &settings.repo,
+        &settings.branch
+    );
+
+    // apply changes listed on the file
+    for operation in &settings.operations {
+        logging::info!("{}", operation.message());
+        operation.apply(&settings, &repository);
     }
 
-    // Compile (if asked)
-    if config.build_file.default_compilation {
-        config.default_compilation();
+    // compile (if asked)
+    if settings.default_compilation {
+        default_compilation(&settings, &repository);
     }
 
-    config.copy_binaries();
+    copy_binaries(&repository);
 
-    // Post-compile stuff
-    for operation in &config.build_file.post_compilation {
-        info!("{}", operation.message());
-        operation.apply(&config);
+    // post-compile callback
+    for operation in &settings.post_compilation {
+        logging::info!("{}", operation.message());
+        operation.apply(&settings, &repository);
     }
 
-    info!("<green>Finished</>");
+    logging::info!("<green>Finished</>");
     exit(0);
 }

@@ -25,7 +25,7 @@ const fn _true() -> bool {
 
 // Struct to define the contents expected on JSON file
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
-pub struct BuildFile {
+pub struct Settings {
     // Required, initial state of the repo
     pub repo: String,
     pub branch: String,
@@ -52,11 +52,11 @@ pub struct BuildFile {
     pub post_compilation: Vec<Operation>,
 }
 
-impl BuildFile {
+impl Settings {
     pub fn load<P: AsRef<Path> + Display>(path: &P) -> Result<Self, Box<dyn Error>> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
-    
+
         let config = deser_hjson::from_reader(reader)?;
         Ok(config)
     }
@@ -68,11 +68,14 @@ mod tests {
 
     use schemars::schema_for;
 
-    use crate::{logging::{info, log, paris}, config::BuildFile};
+    use crate::{
+        build::Settings,
+        logging::{info, log, paris},
+    };
 
     #[test]
     fn schema() {
-        let schema = schema_for!(BuildFile);
+        let schema = schema_for!(Settings);
 
         #[allow(clippy::unwrap_used)]
         let schema_str = serde_json::to_string_pretty(&schema).unwrap();
