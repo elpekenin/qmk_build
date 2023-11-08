@@ -1,21 +1,19 @@
 use std::process::exit;
 
-use clap::Parser;
+mod self_update;
 mod cli;
-
 mod config;
-
 mod git;
-
 mod logging;
+mod operations;
+pub mod sh;
+
+use clap::Parser;
 use config::BuildFile;
 use git::Repository;
 use logging::{info, log, paris, error};
-
-mod operations;
 use operations::prelude::OperationTrait;
 
-pub mod sh;
 
 // Pack together any information that operations might need
 pub struct BuildConfig {
@@ -62,7 +60,7 @@ impl BuildConfig {
         // create (if needed) and clear the output directory
         let binaries = "binaries/";
         let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
-        let _ = sh::run(format!("rm {binaries}/*"), ".", true);
+        let _ = sh::run(format!("rm -f {binaries}/*"), ".", true);
 
         // copy firmwares into output dir
         for ext in ["bin", "hex", "uf2"] {
@@ -119,6 +117,12 @@ impl BuildConfig {
 // Entrypoint for the app
 fn main() {
     logging::init();
+
+    if self_update::detect_changes() {
+        self_update::compile();
+        log::warn!("Detected changes and re-compiled myself, try building your firmware now");
+        exit(0);
+    }
 
     // Parse CLI args
     //   - Early exit after handling some flag
