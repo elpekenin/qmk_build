@@ -1,11 +1,6 @@
 pub mod prelude {
     #[allow(unused_imports)]
-    pub use crate::{
-        build,
-        git,
-        logging::{info, log, paris},
-        sh,
-    };
+    pub use crate::{build, git, logging, sh};
 
     pub use enum_dispatch::enum_dispatch;
     pub use schemars::JsonSchema;

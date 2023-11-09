@@ -4,7 +4,7 @@ use std::{
     process::{exit, Command, Output},
 };
 
-use crate::logging::{debug, error, log, paris};
+use crate::logging;
 
 fn format_buf(buf: &[u8]) -> String {
     String::from_utf8_lossy(buf).replace('\n', "\n    ")
@@ -18,12 +18,12 @@ pub fn run<S: AsRef<OsStr> + Clone + Display>(
 ) -> Output {
     let final_command = format!("cd {} && {}", at.into(), command);
 
-    debug!("Running command: {final_command}");
+    logging::debug!("Running command: {final_command}");
 
     let output = match Command::new("sh").arg("-c").arg(final_command).output() {
         Ok(output) => output,
         Err(e) => {
-            error!(
+            logging::error!(
                 "Couldn't run command <red>{command}</>\n\t<red>{:?}</>",
                 e.to_string().replace('\n', "\n\t")
             );
@@ -32,7 +32,7 @@ pub fn run<S: AsRef<OsStr> + Clone + Display>(
     };
 
     if strict && output.status.code() != Some(0) {
-        error!(
+        logging::error!(
             r#"Running command <yellow>{command}</>
     STDOUT
     ------

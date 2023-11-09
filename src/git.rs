@@ -9,10 +9,7 @@ use std::{
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::{
-    logging::{error, info, log, paris},
-    sh,
-};
+use crate::{logging, sh};
 
 pub struct Repository {
     // foler where the repo is
@@ -61,11 +58,11 @@ impl Repository {
             .code()
             != Some(0)
         {
-            info!("Cloning <blue>{repo}</>, this may take a while...");
+            logging::info!("Cloning <blue>{repo}</>, this may take a while...");
             self_.clone(repo, branch);
         }
 
-        info!("Repo at <blue>{}</>", self_.path);
+        logging::info!("Repo at <blue>{}</>", self_.path);
 
         // Get into desired branch
         // Remove any stray change
@@ -80,9 +77,9 @@ impl Repository {
             true,
         );
 
-        info!("Working based on <blue>{repo}</> <green>@</> <blue>{branch}</>");
+        logging::info!("Working based on <blue>{repo}</> <green>@</> <blue>{branch}</>");
 
-        info!("Synchronizing submodules, this may take a while...");
+        logging::info!("Synchronizing submodules, this may take a while...");
         let _ = self_.run("qmk git-submodule", true);
 
         self_
@@ -107,7 +104,7 @@ impl Repository {
         if output.status.code() != Some(0) {
             let stderr = String::from_utf8(output.stderr).unwrap_or_default();
             if !stderr.contains("already exists") {
-                error!("Adding remote failed with\n\t<red>{stderr}</>");
+                logging::error!("Adding remote failed with\n\t<red>{stderr}</>");
                 exit(1);
             }
         }

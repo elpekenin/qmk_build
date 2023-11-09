@@ -68,14 +68,11 @@ mod tests {
 
     use schemars::schema_for;
 
-    use crate::{
-        build::Settings,
-        logging::{info, log, paris},
-    };
+    use crate::{build, logging};
 
     #[test]
     fn schema() {
-        let schema = schema_for!(Settings);
+        let schema = schema_for!(build::Settings);
 
         #[allow(clippy::unwrap_used)]
         let schema_str = serde_json::to_string_pretty(&schema).unwrap();
@@ -84,6 +81,6 @@ mod tests {
         let mut file = File::create("schema").unwrap();
         let _ = file.write_all(schema_str.as_bytes());
 
-        info!("Schema generated");
+        logging::info!("Schema generated");
     }
 }

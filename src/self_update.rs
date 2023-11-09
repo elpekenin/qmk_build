@@ -12,6 +12,6 @@ pub fn detect_changes() -> bool {
     last_src_change > build_timestamp
 }
 
-pub fn compile() {
-    sh::run("cargo install --path .", env!("CARGO_MANIFEST_DIR"), true);
+pub fn compile() -> std::process::ExitStatus {
+    sh::run("cargo install --path .", env!("CARGO_MANIFEST_DIR"), false).status
 }

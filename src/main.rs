@@ -1,16 +1,13 @@
-use std::process::exit;
-
 pub mod build;
 mod cli;
 pub mod git;
-mod logging;
+pub mod logging;
 #[allow(unused_variables)]
 mod operations;
 mod self_update;
 pub mod sh;
 
 use clap::Parser;
-use logging::{log, paris};
 use operations::prelude::OperationTrait;
 
 fn read_settings(file: &String) -> build::Settings {
@@ -24,7 +21,7 @@ fn read_settings(file: &String) -> build::Settings {
                 "Parsing config file (<blue>{file}</>)\n\t<red>{}</>",
                 e.to_string()
             );
-            exit(1);
+            std::process::exit(1);
         }
     }
 }
@@ -78,9 +75,16 @@ fn main() {
 
     // recompile the tool if source was changed
     if self_update::detect_changes() {
-        self_update::compile();
-        log::warn!("Detected changes and re-compiled myself, try building your firmware now");
-        exit(0); 
+        log::warn!("Detected changes on my source code, attempting to re-compile myself...");
+        let status = self_update::compile();
+
+        if status.success() {
+            log::warn!("Done. Can compile firmware now ^^")
+        } else {
+            log::warn!("Source code is broken. Please fix me :(")
+        }
+
+        std::process::exit(status.code().expect("How did self-compile end by signal???")); 
     }
 
     logging::info!("Welcome to <blue>QMK build (beta)</>");
@@ -114,5 +118,5 @@ fn main() {
     }
 
     logging::info!("<green>Finished</>");
-    exit(0);
+    std::process::exit(0);
 }
