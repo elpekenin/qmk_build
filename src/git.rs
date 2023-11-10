@@ -149,10 +149,7 @@ impl Repository {
     }
 
     pub fn merge(&self, repo: Option<&String>, branches: &[String], strategy: Option<Strategy>) {
-        let repo = repo.map_or_else(
-            String::new,
-            |repo| format!("{}/", Self::remote(repo))
-        );
+        let repo = repo.map_or_else(String::new, |repo| format!("{}/", Self::remote(repo)));
 
         let branches = branches.join(" ");
 

@@ -1,7 +1,6 @@
 use log::LevelFilter;
-use simplelog::{ConfigBuilder, CombinedLogger, TermLogger, TerminalMode, ColorChoice};
+use simplelog::{ColorChoice, CombinedLogger, ConfigBuilder, TermLogger, TerminalMode};
 
-extern crate simplelog;
 pub use simplelog::{debug, error, info, warn};
 
 pub fn init() {
@@ -18,15 +17,11 @@ pub fn init() {
         _ => LevelFilter::Info,
     };
 
-    #[allow(clippy::unwrap_used)]
-    CombinedLogger::init(
-        vec![
-            TermLogger::new(
-                level,
-                logging_config,
-                TerminalMode::Mixed,
-                ColorChoice::Auto
-            ),
-        ]
-    ).unwrap();
+    // init will only fail if we call it a second time (at which point logger is setup and we dont mind it failing)
+    let _ = CombinedLogger::init(vec![TermLogger::new(
+        level,
+        logging_config,
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    )]);
 }

@@ -7,6 +7,8 @@ mod operations;
 mod self_update;
 pub mod sh;
 
+use std::process::exit;
+
 use clap::Parser;
 use operations::prelude::OperationTrait;
 
@@ -21,7 +23,7 @@ fn read_settings(file: &String) -> build::Settings {
                 "Parsing config file (<blue>{file}</>)\n\t<red>{}</>",
                 e.to_string()
             );
-            std::process::exit(1);
+            exit(1);
         }
     }
 }
@@ -65,7 +67,6 @@ fn default_compilation(settings: &build::Settings, repository: &git::Repository)
     let _ = repository.run(cmd, true);
 }
 
-
 // Entrypoint for the app
 fn main() {
     logging::init();
@@ -75,16 +76,20 @@ fn main() {
 
     // recompile the tool if source was changed
     if self_update::detect_changes() {
-        log::warn!("Detected changes on my source code, attempting to re-compile myself...");
+        logging::warn!("Detected changes on my source code, attempting to re-compile myself...");
         let status = self_update::compile();
 
         if status.success() {
-            log::warn!("Done. Can compile firmware now ^^")
+            logging::warn!("Done. Can compile firmware now ^^");
         } else {
-            log::warn!("Source code is broken. Please fix me :(")
+            logging::warn!("Source code is broken. Please fix me :(");
         }
 
-        std::process::exit(status.code().expect("How did self-compile end by signal???")); 
+        exit(
+            status
+                .code()
+                .expect("How did self-compile end by signal???"),
+        );
     }
 
     logging::info!("Welcome to <blue>QMK build (beta)</>");
@@ -92,11 +97,7 @@ fn main() {
     // (try) load build configuration
     let settings = read_settings(&cli_args.file);
 
-    let repository = git::Repository::init(
-        &settings.path, 
-        &settings.repo,
-        &settings.branch
-    );
+    let repository = git::Repository::init(&settings.path, &settings.repo, &settings.branch);
 
     // apply changes listed on the file
     for operation in &settings.operations {
@@ -118,5 +119,5 @@ fn main() {
     }
 
     logging::info!("<green>Finished</>");
-    std::process::exit(0);
+    exit(0);
 }

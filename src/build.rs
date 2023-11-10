@@ -53,6 +53,10 @@ pub struct Settings {
 }
 
 impl Settings {
+    /// # Errors
+    ///
+    /// Will return `Err` if `path` does not exist or the content does not follow
+    /// the expected format (check schema file)
     pub fn load<P: AsRef<Path> + Display>(path: &P) -> Result<Self, Box<dyn Error>> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);

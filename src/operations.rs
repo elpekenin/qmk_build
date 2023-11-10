@@ -30,7 +30,6 @@ use exec::Exec;
 use merge::Merge;
 use pr::PullRequest;
 
-
 #[enum_dispatch(OperationTrait)]
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 #[serde(tag = "operation", rename_all = "snake_case")]

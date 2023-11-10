@@ -12,9 +12,9 @@ fn default_run_at() -> String {
 pub struct Exec {
     command: String, // command to execute
     #[serde(default = "default_run_at")]
-    at: String,      // where to do so (defaults to wherever the CLI is invoked)
+    at: String, // where to do so (defaults to wherever the CLI is invoked)
     #[serde(default = "default_strict")]
-    strict: bool,    // is it allowed to fail (defaults to false)
+    strict: bool, // is it allowed to fail (defaults to false)
 }
 
 impl OperationTrait for Exec {
@@ -27,9 +27,7 @@ impl OperationTrait for Exec {
         let can_fail = if self.strict { " <red>not</>" } else { "" };
         format!(
             "Executing <blue>{}</> at <blue>{}</> -- It can{} fail",
-            &self.command,
-            &self.at,
-            can_fail
+            &self.command, &self.at, can_fail
         )
     }
 }
