@@ -71,9 +71,6 @@ fn default_compilation(settings: &build::Settings, repository: &git::Repository)
 fn main() {
     logging::init();
 
-    // parse CLI args
-    let cli_args = cli::Args::parse();
-
     // recompile the tool if source was changed
     if self_update::detect_changes() {
         logging::warn!("Detected changes on my source code, attempting to re-compile myself...");
@@ -91,6 +88,9 @@ fn main() {
                 .expect("How did self-compile end by signal???"),
         );
     }
+
+    // parse CLI args
+    let cli_args = cli::Args::parse();
 
     logging::info!("Welcome to <blue>QMK build (beta)</>");
 

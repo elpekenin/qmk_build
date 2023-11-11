@@ -1,5 +1,0 @@
-TAP_DANCE_ENABLE = yes
-TOUCH_SCREEN = yes
-UCIS_ENABLE = yes
-WPM_ENABLE = yes
-XAP_ENABLE = yes

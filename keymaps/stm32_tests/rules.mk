@@ -1,8 +1,0 @@
-QUANTUM_PAINTER_ENABLE = yes
-QUANTUM_PAINTER_DRIVERS = st7735_spi
-
-CONSOLE_ENABLE = yes
-
-FILESYSTEM_DRIVER = lfs_sdmmc_card
-
-SRC += fira_code.qff.c
