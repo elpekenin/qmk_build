@@ -74,19 +74,7 @@ fn main() {
     // recompile the tool if source was changed
     if self_update::detect_changes() {
         logging::warn!("Detected changes on my source code, attempting to re-compile myself...");
-        let status = self_update::compile();
-
-        if status.success() {
-            logging::warn!("Done. Can compile firmware now ^^");
-        } else {
-            logging::warn!("Source code is broken. Please fix me :(");
-        }
-
-        exit(
-            status
-                .code()
-                .expect("How did self-compile end by signal???"),
-        );
+        self_update::compile();
     }
 
     // parse CLI args
