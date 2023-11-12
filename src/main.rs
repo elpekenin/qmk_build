@@ -1,6 +1,7 @@
 pub mod build;
 mod cli;
 pub mod git;
+#[macro_use]
 pub mod logging;
 #[allow(unused_variables)]
 mod operations;
