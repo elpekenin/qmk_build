@@ -11,6 +11,7 @@ pub struct Merge {
 
 impl OperationTrait for Merge {
     fn apply(&self, settings: &build::Settings, repository: &git::Repository) {
+        repository.remote_add(&self.repo);
         repository.fetch(&self.repo, Some(&self.branch));
         repository.merge(
             Some(&self.repo),

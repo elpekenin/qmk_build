@@ -11,10 +11,10 @@ impl OperationTrait for PullRequest {
         let local_branch_name = format!("PR_{}", self.id);
         let fetch_remote_branch = &format!("pull/{}/head:{}", self.id, local_branch_name);
 
-        repository.fetch(
-            self.repo.as_ref().unwrap_or(&settings.repo),
-            Some(fetch_remote_branch),
-        );
+        let target_repo = self.repo.as_ref().unwrap_or(&settings.repo);
+
+        repository.remote_add(target_repo);
+        repository.fetch(target_repo, Some(fetch_remote_branch));
         repository.merge(None, &[local_branch_name], None);
     }
 
