@@ -29,7 +29,7 @@ pub fn detect_changes() -> bool {
     // checking at MANIFEST_DIR we can detect changes on src, build, and TOML
     // exclude target, otherwise new binary would be seen as a change, and we always land here
     let output = run_cmd(
-        r#"find -path . -not -path ./target -not -path ./.git -printf "%Ts\n" | sort -nr | head -n 1"#,
+        r#"find . -type d \( -path ./target -o -path ./.git \) -prune -o -name '*' -printf "%Ts\n" | sort -nr | head -n 1"#,
         false,
     );
 

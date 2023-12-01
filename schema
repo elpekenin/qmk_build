@@ -10,9 +10,11 @@
     "branch": {
       "type": "string"
     },
-    "default_compilation": {
-      "default": true,
-      "type": "boolean"
+    "compile_command": {
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "keyboard": {
       "type": [

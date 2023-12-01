@@ -47,7 +47,7 @@ fn copy_binaries(git_repo: &git::Repository) {
     logging::info!("Copied into <blue>{binaries}</>");
 }
 
-fn default_compilation(settings: &build::Settings, repository: &git::Repository) {
+fn compile(settings: &build::Settings, repository: &git::Repository) {
     logging::info!(
         "Compiling <blue>{:?}</> <green>:</> <blue>{:?}</>",
         settings.keyboard,
@@ -55,10 +55,15 @@ fn default_compilation(settings: &build::Settings, repository: &git::Repository)
     );
 
     // setup the command to be run
-    let mut cmd = String::from("qmk compile");
+    let mut cmd = settings
+        .compile_command
+        .clone()
+        .unwrap_or(String::from("qmk compile"));
+
     if let Some(kb) = &settings.keyboard {
         cmd.push_str(&format!(" -kb {kb}"));
     }
+
     if let Some(km) = &settings.keymap {
         cmd.push_str(&format!(" -km {km}"));
     }
@@ -94,10 +99,7 @@ fn main() {
         operation.apply(&settings, &repository);
     }
 
-    // compile (if asked)
-    if settings.default_compilation {
-        default_compilation(&settings, &repository);
-    }
+    compile(&settings, &repository);
 
     copy_binaries(&repository);
 

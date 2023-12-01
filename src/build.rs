@@ -19,10 +19,6 @@ const fn default_operations() -> Vec<Operation> {
     Vec::new()
 }
 
-const fn _true() -> bool {
-    true
-}
-
 // Struct to define the contents expected on JSON file
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Settings {
@@ -34,18 +30,15 @@ pub struct Settings {
     #[serde(default = "default_path")]
     pub path: String,
 
-    // Let user set a fixed value, otherwise let `qmk` infer from config
+    // Can be used to override the command used to compile, defaults to `qmk config`
+    pub compile_command: Option<String>,
+    // Let user set a fixed value, otherwise let `qmk compile` infer from config
     pub keyboard: Option<String>,
     pub keymap: Option<String>,
 
     // Set of changes to be performed
     #[serde(default = "default_operations")]
     pub operations: Vec<Operation>,
-
-    // Either you want a default compilation command (qmk compile)
-    // or not (provide your own command/script at a step)
-    #[serde(default = "_true")]
-    pub default_compilation: bool,
 
     // Do stuff after compiling
     #[serde(default = "default_operations")]
