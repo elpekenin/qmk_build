@@ -46,6 +46,16 @@
     },
     "repo": {
       "type": "string"
+    },
+    "wsl": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/WSL"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "definitions": {
@@ -219,6 +229,17 @@
         "resolve",
         "subtree"
       ]
+    },
+    "WSL": {
+      "type": "object",
+      "required": [
+        "destination"
+      ],
+      "properties": {
+        "destination": {
+          "type": "string"
+        }
+      }
     }
   }
 }

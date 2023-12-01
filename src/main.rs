@@ -29,22 +29,37 @@ fn read_settings(file: &String) -> build::Settings {
     }
 }
 
-fn copy_binaries(git_repo: &git::Repository) {
+fn is_wsl() -> bool {
+    let stdout = match String::from_utf8(sh::run("uname -a", ".", false).stdout) {
+        Ok(str) => str,
+        Err(_) => {
+            return false;
+        }
+    };
+
+    stdout.to_lowercase().contains("wsl")
+}
+
+fn copy_binaries(settings: &build::Settings, git_repo: &git::Repository) {
     // create (if needed) and clear the output directory
-    let binaries = "binaries/";
-    let _ = sh::run(format!("mkdir -p {binaries}"), ".", true);
-    let _ = sh::run(format!("rm -f {binaries}/*"), ".", true);
+    let mut dest_folder = String::from("binaries/");
+
+    if is_wsl() && settings.wsl.is_some() {
+        dest_folder = settings.wsl.clone().unwrap().destination;
+    }
+
+    let _ = sh::run(format!("mkdir -p {dest_folder}"), ".", true);
 
     // copy firmwares into output dir
     for ext in ["bin", "hex", "uf2"] {
         let _ = sh::run(
-            format!("cp {}/*.{ext} {binaries}", git_repo.path),
+            format!("cp {}/*.{ext} {dest_folder}", git_repo.path),
             ".",
             false,
         );
     }
 
-    logging::info!("Copied into <blue>{binaries}</>");
+    logging::info!("Copied into <blue>{dest_folder}</>");
 }
 
 fn compile(settings: &build::Settings, repository: &git::Repository) {
@@ -101,7 +116,7 @@ fn main() {
 
     compile(&settings, &repository);
 
-    copy_binaries(&repository);
+    copy_binaries(&settings, &repository);
 
     // post-compile callback
     for operation in &settings.post_compilation {

@@ -19,6 +19,12 @@ const fn default_operations() -> Vec<Operation> {
     Vec::new()
 }
 
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
+pub struct WSL {
+    // Where to copy binaries. Full path, ie: /mnt/...
+    pub destination: String,
+}
+
 // Struct to define the contents expected on JSON file
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct Settings {
@@ -43,6 +49,9 @@ pub struct Settings {
     // Do stuff after compiling
     #[serde(default = "default_operations")]
     pub post_compilation: Vec<Operation>,
+
+    // Whether to skip copying
+    pub wsl: Option<WSL>,
 }
 
 impl Settings {
