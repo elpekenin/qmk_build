@@ -63,12 +63,6 @@ fn copy_binaries(settings: &build::Settings, git_repo: &git::Repository) {
 }
 
 fn compile(settings: &build::Settings, repository: &git::Repository) {
-    logging::info!(
-        "Compiling <blue>{:?}</> <green>:</> <blue>{:?}</>",
-        settings.keyboard,
-        settings.keymap,
-    );
-
     // setup the command to be run
     let mut cmd = settings
         .compile_command
@@ -82,6 +76,8 @@ fn compile(settings: &build::Settings, repository: &git::Repository) {
     if let Some(km) = &settings.keymap {
         cmd.push_str(&format!(" -km {km}"));
     }
+
+    logging::info!("Compiling with <blue>{cmd}</>");
 
     // compile
     let _ = repository.run("qmk clean -a", true);

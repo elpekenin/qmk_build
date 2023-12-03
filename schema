@@ -93,12 +93,12 @@
         {
           "type": "object",
           "required": [
-            "dest",
+            "destination",
             "operation",
             "orig"
           ],
           "properties": {
-            "dest": {
+            "destination": {
               "type": "string"
             },
             "operation": {
@@ -215,6 +215,28 @@
                 "string",
                 "null"
               ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "filename",
+            "operation",
+            "url"
+          ],
+          "properties": {
+            "filename": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "wget"
+              ]
+            },
+            "url": {
+              "type": "string"
             }
           }
         }

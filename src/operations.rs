@@ -22,6 +22,7 @@ mod diff;
 mod exec;
 mod merge;
 mod pr;
+mod wget;
 
 use checkout::Checkout;
 use copy::Copy;
@@ -29,6 +30,7 @@ use diff::Diff;
 use exec::Exec;
 use merge::Merge;
 use pr::PullRequest;
+use wget::Wget;
 
 #[enum_dispatch(OperationTrait)]
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
@@ -41,4 +43,5 @@ pub enum Operation {
     Exec(Exec),         // Run a command/script
     Merge(Merge),       // Merge a branch
     Pr(PullRequest),    // Grab PR changes
+    Wget(Wget),         // Download a file from internet
 }
