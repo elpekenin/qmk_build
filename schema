@@ -221,19 +221,19 @@
         {
           "type": "object",
           "required": [
-            "filename",
             "operation",
+            "path",
             "url"
           ],
           "properties": {
-            "filename": {
-              "type": "string"
-            },
             "operation": {
               "type": "string",
               "enum": [
                 "wget"
               ]
+            },
+            "path": {
+              "type": "string"
             },
             "url": {
               "type": "string"
