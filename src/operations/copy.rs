@@ -16,7 +16,7 @@ impl OperationTrait for Copy {
 
     fn message(&self) -> String {
         format!(
-            "Copying: <blue>{}</> <green>-></> <blue>{}</>",
+            "Copying <blue>{}</> <green>-></> <blue>{}</>",
             self.orig, self.destination,
         )
     }

@@ -22,6 +22,6 @@ impl OperationTrait for Diff {
     }
 
     fn message(&self) -> String {
-        format!("Applying patch: <blue>{}/{}</>", self.folder, self.file)
+        format!("Applying patch <blue>{}/{}</>", self.folder, self.file)
     }
 }

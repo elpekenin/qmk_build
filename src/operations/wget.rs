@@ -19,7 +19,7 @@ impl OperationTrait for Wget {
 
     fn message(&self) -> String {
         format!(
-            "Downloading: <blue>{}</> <green>-></> <blue>{DOWNLOADS}/{}</>",
+            "Downloading <blue>{}</> <green>-></> <blue>{DOWNLOADS}/{}</>",
             self.url, self.filename
         )
     }
