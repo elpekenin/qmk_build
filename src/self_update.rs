@@ -1,6 +1,9 @@
 // Tiny logic so the tool re-compiles itself
 
-use std::process::{exit, Command, Output, Stdio};
+use std::{
+    env::args,
+    process::{exit, Command, Output, Stdio},
+};
 
 use crate::logging;
 
@@ -13,7 +16,7 @@ fn run_cmd(cmd: &str, redirect: bool) -> Output {
 
     if redirect {
         command.stdin(Stdio::null());
-        command.stdout(Stdio::null());
+        command.stdout(Stdio::inherit());
         command.stderr(Stdio::inherit());
     }
 
@@ -39,6 +42,16 @@ pub fn detect_changes() -> bool {
     last_change > build_timestamp
 }
 
+fn args_as_str() -> String {
+    args()
+        .reduce(|acc, e| {
+            let mut copy = acc.clone();
+            copy.push_str(&format!(" {e}"));
+            copy
+        })
+        .unwrap()
+}
+
 pub fn compile() {
     // format + lint code
     run_cmd("cargo fmt", false);
@@ -52,7 +65,19 @@ pub fn compile() {
     //           only warnings/errors, info messages silenced with --quiet
     let status = run_cmd("cargo install --quiet --path .", true).status;
     if status.success() {
-        logging::warn!("Done. Can compile firmware now ^^");
+        logging::warn!("Done. Calling myself again now ^^");
+        run_cmd(
+            &format!(
+                // note: without sleep it did several re-compilations
+                //       in a loop (:
+                "cd {} && sleep 2 && {}",
+                std::env::current_dir()
+                    .expect("Couldn't get current dir.")
+                    .display(),
+                &args_as_str()
+            ),
+            true,
+        );
     } else {
         logging::warn!("Source code is broken. Please fix me :(");
     }
