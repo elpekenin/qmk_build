@@ -50,7 +50,7 @@ impl Repository {
 
     pub fn init(path: impl Into<String>, repo: &String, branch: &String) -> Self {
         let path = path.into();
-        let self_ = Self { path };
+        let self_ = Self { path: path.clone() };
 
         // clone repo if path doesnt exist yet
         if sh::run(format!("cd {}", self_.path), ".", false)
@@ -59,6 +59,13 @@ impl Repository {
             != Some(0)
         {
             logging::info!("Cloning <blue>{repo}</>, this may take a while...");
+
+            // make sure we can clone in the specified path
+            let parent = std::path::Path::new(&path)
+                .parent()
+                .expect("Did not get a valid path");
+            sh::run(format!("mkdir -p {}", parent.to_string_lossy()), ".", true);
+
             self_.clone(repo, branch);
         }
 
